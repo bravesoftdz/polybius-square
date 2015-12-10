@@ -1,4 +1,4 @@
-unit GIFImage;
+﻿unit GIFImage;
 ////////////////////////////////////////////////////////////////////////////////
 //                                                                            //
 // Project:	GIF Graphics Object                                           //

@@ -1,7 +1,7 @@
-(* Квадрат полибия v2.4
- * Просто помни, сука, что программу накодил Серенков Валерий,
+п»ї(* РљРІР°РґСЂР°С‚ РїРѕР»РёР±РёСЏ v2.4
+ * РџСЂРѕСЃС‚Рѕ РїРѕРјРЅРё, СЃСѓРєР°, С‡С‚Рѕ РїСЂРѕРіСЂР°РјРјСѓ РЅР°РєРѕРґРёР» РЎРµСЂРµРЅРєРѕРІ Р’Р°Р»РµСЂРёР№,
  * E-Mail: <webmaster@anime.net.kg>
- * Сайт: http://anime.net.kg/
+ * РЎР°Р№С‚: http://anime.net.kg/
  *)
 unit key_generator;
 
@@ -242,7 +242,7 @@ case RadioGroup1.ItemIndex of
 						table[i]:=-i+479;
 					for I := 0 to 255 do
 						edits_array[i].Text:=chr(table[i]);
-					form39.Caption:='Атбаш';
+					form39.Caption:='РђС‚Р±Р°С€';
 			end;
 {$ENDREGION}
 
@@ -275,7 +275,7 @@ case RadioGroup1.ItemIndex of
 								table[j]:=table[j-1];
 							table[97]:=tmp;
 
-							tmp:=table[223];           //А..Я
+							tmp:=table[223];           //Рђ..РЇ
 							for j := 223 downto 193 do
 								table[j]:=table[j-1];
 							table[192]:=tmp;
@@ -283,7 +283,7 @@ case RadioGroup1.ItemIndex of
 							table[168]:=table[198];
 							table[198]:=tmp;
 
-							tmp:=table[255];           //а..я
+							tmp:=table[255];           //Р°..СЏ
 							for j := 255 downto 225 do
 								table[j]:=table[j-1];
 							table[224]:=tmp;
@@ -308,7 +308,7 @@ case RadioGroup1.ItemIndex of
                 table[j]:=table[j+1];
               table[122]:=tmp;
 
-							tmp:=table[192];           //А..Я
+							tmp:=table[192];           //Рђ..РЇ
               for j := 192 to 222 do
                 table[j]:=table[j+1];
               table[223]:=tmp;
@@ -316,7 +316,7 @@ case RadioGroup1.ItemIndex of
               table[168]:=table[197];
               table[197]:=tmp;
 
-							tmp:=table[224];           //а..я
+							tmp:=table[224];           //Р°..СЏ
 							for j := 224 to 254 do
 								table[j]:=table[j+1];
 							table[255]:=tmp;
@@ -326,7 +326,7 @@ case RadioGroup1.ItemIndex of
 						end;
 						for I := 0 to 255 do
 							edits_array[i].Text:=chr(table[i]);
-					form39.Caption:='Цезарь (Сдвиг: '+inttostr(shift)+')';
+					form39.Caption:='Р¦РµР·Р°СЂСЊ (РЎРґРІРёРі: '+inttostr(shift)+')';
 			end;
 {$ENDREGION}
 
@@ -340,7 +340,7 @@ case RadioGroup1.ItemIndex of
 			end;
 {$ENDREGION}
 
-{#region qwerty <-> йцукен}{$REGION}
+{#region qwerty <-> Р№С†СѓРєРµРЅ}{$REGION}
     	6: begin
 					table[$22]:=$DD;
 					table[$27]:=$FD;
@@ -371,7 +371,7 @@ case RadioGroup1.ItemIndex of
 						table[i]:=ord(temp[i-$BF]);
 					for I := 0 to 255 do
 						edits_array[i].Text:=chr(table[i]);
-					form39.Caption:='Ошибка ввода En <-> Ru';
+					form39.Caption:='РћС€РёР±РєР° РІРІРѕРґР° En <-> Ru';
 			end;
 {$ENDREGION}
 
@@ -509,7 +509,7 @@ if ComboBox1.ItemIndex = 4 then
   begin
     label3.Visible:=true;
     maskedit1.Visible:=true;
-    label3.Caption:='Сдвиг:';
+    label3.Caption:='РЎРґРІРёРі:';
     label4.Visible:=false;
     maskedit2.Visible:=false;
 	end else

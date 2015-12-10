@@ -1,4 +1,4 @@
-﻿unit Isaac;
+﻿п»їunit Isaac;
 
 {$OVERFLOWCHECKS OFF}
 
@@ -14,7 +14,7 @@
    ISAAC has a 8192 bits seed (read: 8192 bits key for encryption).
 
    ISAAC Object-oriented Delphi implementation version 1.0.0
-   by Sébastien SAUVAGE <sebsauvage at sebsauvage dot net>
+   by SГ©bastien SAUVAGE <sebsauvage at sebsauvage dot net>
    http://sebsauvage.net
 
    The ISAAC algorihm is freely reusable.
@@ -22,7 +22,7 @@
    Please let me know if you make interesting uses of this implementation.
    Please mention:
       ISAAC algorithm by Bob Jenkins (http://burtleburtle.net/bob/)
-      Delphi ISAAC implementation by Sébastien SAUVAGE <sebsauvage at sebsauvage dot net>
+      Delphi ISAAC implementation by SГ©bastien SAUVAGE <sebsauvage at sebsauvage dot net>
       http://sebsauvage.net
 
    This implementation was tested under Delphi 4, but should work with no
@@ -32,7 +32,7 @@
    Code is not optimized.
 
    To get exactly the same results as the C version, you will have to:
-     - change FALSE to TRUE at line £££1 in code (look for £££1 in code).
+     - change FALSE to TRUE at line ВЈВЈВЈ1 in code (look for ВЈВЈВЈ1 in code).
      - use the following program:
            x : TIsaac;
            i : integer;
@@ -46,7 +46,7 @@
 
    For normal use, you should NOT call Isaac(). This will be done automatically
    when needed by val().  You also should leave the boolean value to FALSE
-   at £££1. This will speedup initialisation at no cost for security.
+   at ВЈВЈВЈ1. This will speedup initialisation at no cost for security.
 
 
    2 do list:
@@ -152,7 +152,7 @@ var
 begin
     for i:= 0 to 255 do mem[i]:=0;
     for i:= 0 to 255 do rsl[i]:=0;
-    Init(false);  // init WITHOUT the seed (speedup)    £££1
+    Init(false);  // init WITHOUT the seed (speedup)    ВЈВЈВЈ1
 end;
 
 { Re-seed the objet with a given seed.

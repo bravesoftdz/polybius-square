@@ -1,19 +1,19 @@
-(* Квадрат полибия v2.4
- * Просто помни, сука, что программу накодил Серенков Валерий,
+п»ї(* РљРІР°РґСЂР°С‚ РїРѕР»РёР±РёСЏ v2.4
+ * РџСЂРѕСЃС‚Рѕ РїРѕРјРЅРё, СЃСѓРєР°, С‡С‚Рѕ РїСЂРѕРіСЂР°РјРјСѓ РЅР°РєРѕРґРёР» РЎРµСЂРµРЅРєРѕРІ Р’Р°Р»РµСЂРёР№,
  * E-Mail: <webmaster@anime.net.kg>
- * Сайт: http://anime.net.kg/
+ * РЎР°Р№С‚: http://anime.net.kg/
  *)
-{>> Многоалфавитный шифр замены
+{>> РњРЅРѕРіРѕР°Р»С„Р°РІРёС‚РЅС‹Р№ С€РёС„СЂ Р·Р°РјРµРЅС‹
 
-Зависимости: НЕТ
-Автор:       Frederica Bernkastel, mails@namba.kg, Skype: frederica.bernkastel0
-Дата:        17 января 2015 г.
+Р—Р°РІРёСЃРёРјРѕСЃС‚Рё: РќР•Рў
+РђРІС‚РѕСЂ:       Frederica Bernkastel, mails@namba.kg, Skype: frederica.bernkastel0
+Р”Р°С‚Р°:        17 СЏРЅРІР°СЂСЏ 2015 Рі.
 **************************************************************************}
 
 {*************************************************************************}
 { Multialphabetical replace cypher Unit For Borland Delphi }
 { }
-{ Copyright © 2015 by Frederica Bernkastel }
+{ Copyright В© 2015 by Frederica Bernkastel }
 { E-mail: mails@namba.kg, }
 { Web-site: }
 { }
@@ -51,8 +51,8 @@ unit encoder;
 
 interface
 
-{	* Здесь и далее, КЛЮЧ - установленное взаимооднозначное
-	* соответствие множества байт на себя I <--> Key[ I ] }
+{	* Р—РґРµСЃСЊ Рё РґР°Р»РµРµ, РљР›Р®Р§ - СѓСЃС‚Р°РЅРѕРІР»РµРЅРЅРѕРµ РІР·Р°РёРјРѕРѕРґРЅРѕР·РЅР°С‡РЅРѕРµ
+	* СЃРѕРѕС‚РІРµС‚СЃС‚РІРёРµ РјРЅРѕР¶РµСЃС‚РІР° Р±Р°Р№С‚ РЅР° СЃРµР±СЏ I <--> Key[ I ] }
 type	TByteArray = array of byte;
     	PByteArray = ^TByteArray;
 type 	Tkey 			 = array [0..255] of byte;
@@ -61,10 +61,10 @@ type 	Tkey2 		 = array of Tkey;
 			Pkey2 		 = ^Tkey2;
 type 	TFrequency = array[0..255] of Int64;
 
-{	* В большистве функций, данные передаются через указатели
-	* на строки типа PAnsiString}
+{	* Р’ Р±РѕР»СЊС€РёСЃС‚РІРµ С„СѓРЅРєС†РёР№, РґР°РЅРЅС‹Рµ РїРµСЂРµРґР°СЋС‚СЃСЏ С‡РµСЂРµР· СѓРєР°Р·Р°С‚РµР»Рё
+	* РЅР° СЃС‚СЂРѕРєРё С‚РёРїР° PAnsiString}
 
-{Старые функции очаровывания / разочаровывания :)}
+{РЎС‚Р°СЂС‹Рµ С„СѓРЅРєС†РёРё РѕС‡Р°СЂРѕРІС‹РІР°РЅРёСЏ / СЂР°Р·РѕС‡Р°СЂРѕРІС‹РІР°РЅРёСЏ :)}
 function encode(input			:	AnsiString;
 								key				: Pkey;
 								grouping	:	integer;
@@ -72,48 +72,48 @@ function encode(input			:	AnsiString;
 function decode(input:Ansistring; key: Pkey):Ansistring;
 {unction encode2(input: string; fill_zero:boolean):string;}
 
-{Шифрование моноалфавитным ключом}
+{РЁРёС„СЂРѕРІР°РЅРёРµ РјРѕРЅРѕР°Р»С„Р°РІРёС‚РЅС‹Рј РєР»СЋС‡РѕРј}
 procedure file_encode			 (data:PAnsiString; key: Pkey);
 procedure file_decode			 (data:PAnsiString; key: Pkey); overload;
 
-{Шифрование многоалфавитным ключом}
+{РЁРёС„СЂРѕРІР°РЅРёРµ РјРЅРѕРіРѕР°Р»С„Р°РІРёС‚РЅС‹Рј РєР»СЋС‡РѕРј}
 procedure file_encode_2dimm(data:PAnsiString; key: Pkey2);
 procedure file_decode_2dimm(data:PAnsiString; key: Pkey2); overload;
 procedure file_decode_2dimm(data:PAnsiString; key: Pkey2; initKeyOffset, initDataOffset: int64); overload;
-{	* Функция инвертирования ключа.
-	* Если применить функцию дешифрования данных с инвертированным ключом,
-	* то произойдёт обратное преобразование, т.е. шифрование.
-	* Т.к. дешифрование на порядок быстрее шифрования.}
+{	* Р¤СѓРЅРєС†РёСЏ РёРЅРІРµСЂС‚РёСЂРѕРІР°РЅРёСЏ РєР»СЋС‡Р°.
+	* Р•СЃР»Рё РїСЂРёРјРµРЅРёС‚СЊ С„СѓРЅРєС†РёСЋ РґРµС€РёС„СЂРѕРІР°РЅРёСЏ РґР°РЅРЅС‹С… СЃ РёРЅРІРµСЂС‚РёСЂРѕРІР°РЅРЅС‹Рј РєР»СЋС‡РѕРј,
+	* С‚Рѕ РїСЂРѕРёР·РѕР№РґС‘С‚ РѕР±СЂР°С‚РЅРѕРµ РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёРµ, С‚.Рµ. С€РёС„СЂРѕРІР°РЅРёРµ.
+	* Рў.Рє. РґРµС€РёС„СЂРѕРІР°РЅРёРµ РЅР° РїРѕСЂСЏРґРѕРє Р±С‹СЃС‚СЂРµРµ С€РёС„СЂРѕРІР°РЅРёСЏ.}
 procedure invert	(key: Pkey); overload;
 procedure invert	(key: Pkey2);overload;
 
-{	* Проверка ключа на взаимооднозначное соответствие байт.
-	* Необходимо производить проверку перед любыми действиями с ключом,
-	* иначе последствия непредсказуемы.}
-{ * volidate(PKey) - точно указыает на перекрывающиеся байты
-	* volidate(PKey2) - true, если ошибок нет.}
+{	* РџСЂРѕРІРµСЂРєР° РєР»СЋС‡Р° РЅР° РІР·Р°РёРјРѕРѕРґРЅРѕР·РЅР°С‡РЅРѕРµ СЃРѕРѕС‚РІРµС‚СЃС‚РІРёРµ Р±Р°Р№С‚.
+	* РќРµРѕР±С…РѕРґРёРјРѕ РїСЂРѕРёР·РІРѕРґРёС‚СЊ РїСЂРѕРІРµСЂРєСѓ РїРµСЂРµРґ Р»СЋР±С‹РјРё РґРµР№СЃС‚РІРёСЏРјРё СЃ РєР»СЋС‡РѕРј,
+	* РёРЅР°С‡Рµ РїРѕСЃР»РµРґСЃС‚РІРёСЏ РЅРµРїСЂРµРґСЃРєР°Р·СѓРµРјС‹.}
+{ * volidate(PKey) - С‚РѕС‡РЅРѕ СѓРєР°Р·С‹Р°РµС‚ РЅР° РїРµСЂРµРєСЂС‹РІР°СЋС‰РёРµСЃСЏ Р±Р°Р№С‚С‹
+	* volidate(PKey2) - true, РµСЃР»Рё РѕС€РёР±РѕРє РЅРµС‚.}
 function  volidate(key: Pkey): string; overload;
 function  volidate(key: Pkey2):boolean; overload;
 
-{	*	Проверка ключа на неизменность управляющих символов ASCII,
-	*	т.е. соответствию key[ i ] = i, где 00h <= i < 20h }
+{	*	РџСЂРѕРІРµСЂРєР° РєР»СЋС‡Р° РЅР° РЅРµРёР·РјРµРЅРЅРѕСЃС‚СЊ СѓРїСЂР°РІР»СЏСЋС‰РёС… СЃРёРјРІРѕР»РѕРІ ASCII,
+	*	С‚.Рµ. СЃРѕРѕС‚РІРµС‚СЃС‚РІРёСЋ key[ i ] = i, РіРґРµ 00h <= i < 20h }
 function  volidate_text(key: Pkey):	boolean; overload;
 function  volidate_text(key: Pkey2):	boolean; overload;
 
-{	*	Вычисление количества транспозиций ключа}
+{	*	Р’С‹С‡РёСЃР»РµРЅРёРµ РєРѕР»РёС‡РµСЃС‚РІР° С‚СЂР°РЅСЃРїРѕР·РёС†РёР№ РєР»СЋС‡Р°}
 function	TransposCnt(key: PKey): integer;
 
-{	* Частотный анализ данных
-	* TFrequency - массив [0..255] количеств соответствующих байт (ненормализован)}
+{	* Р§Р°СЃС‚РѕС‚РЅС‹Р№ Р°РЅР°Р»РёР· РґР°РЅРЅС‹С…
+	* TFrequency - РјР°СЃСЃРёРІ [0..255] РєРѕР»РёС‡РµСЃС‚РІ СЃРѕРѕС‚РІРµС‚СЃС‚РІСѓСЋС‰РёС… Р±Р°Р№С‚ (РЅРµРЅРѕСЂРјР°Р»РёР·РѕРІР°РЅ)}
 function  Frequency_analysis(data: PAnsiString):TFrequency;
 
-{	* Очаровывание строки (преобразование в HexAscii Win-1251)}
+{	* РћС‡Р°СЂРѕРІС‹РІР°РЅРёРµ СЃС‚СЂРѕРєРё (РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёРµ РІ HexAscii Win-1251)}
 function  StrToHex(text: String):String;
 
 function 	IntToHex(Value: Int64; Digits: Integer): string;
 procedure CvtInt64;
 
-var progress: integer;	//Прогресс чего-либо, доступный любому потоку
+var progress: integer;	//РџСЂРѕРіСЂРµСЃСЃ С‡РµРіРѕ-Р»РёР±Рѕ, РґРѕСЃС‚СѓРїРЅС‹Р№ Р»СЋР±РѕРјСѓ РїРѕС‚РѕРєСѓ
 
 implementation
 
@@ -535,7 +535,7 @@ z				:=	grouping;
 			if input[I]=table[I2  ] then begin
 				freq(InttoHex(I2,2)); result:=result+InttoHex(I2,2); break end;}
 for I := 1 to length(input) do begin
-if grouping > 0 then //группировка символов
+if grouping > 0 then //РіСЂСѓРїРїРёСЂРѕРІРєР° СЃРёРјРІРѕР»РѕРІ
 	z := z+1;
 	if z >= grouping then begin
 		result := result + separator;
@@ -802,7 +802,7 @@ if ord_input_i=key^[255] then result:=result+'ff';
   end;
 end;
 
-function decode(input:string; key: Pkey):string;//функция дешифрования
+function decode(input:string; key: Pkey):string;//С„СѓРЅРєС†РёСЏ РґРµС€РёС„СЂРѕРІР°РЅРёСЏ
 var
 		i						:longint;
 		input_i_plus:string;

@@ -1,16 +1,16 @@
-{ **** UBPFD *********** by delphibase.endimus.com ****
->> Вычисление хеш-суммы MD5
+п»ї{ **** UBPFD *********** by delphibase.endimus.com ****
+>> Р’С‹С‡РёСЃР»РµРЅРёРµ С…РµС€-СЃСѓРјРјС‹ MD5
 
-Зависимости: Windows, SysUtils, Classes
-Автор:       Dimka Maslov, mainbox@endimus.ru, ICQ:148442121, Санкт-Петербург
+Р—Р°РІРёСЃРёРјРѕСЃС‚Рё: Windows, SysUtils, Classes
+РђРІС‚РѕСЂ:       Dimka Maslov, mainbox@endimus.ru, ICQ:148442121, РЎР°РЅРєС‚-РџРµС‚РµСЂР±СѓСЂРі
 Copyright:   http://www.faqs.org/rfcs/rfc1321.html
-Дата:        19 июня 2002 г.
+Р”Р°С‚Р°:        19 РёСЋРЅСЏ 2002 Рі.
 ***************************************************** }
 
 {******************************************************************}
 { MD5 Hashsum Evaluation Unit For Borland Delphi }
 { }
-{ Copyright © 2002 by Dimka Maslov }
+{ Copyright В© 2002 by Dimka Maslov }
 { E-mail: mainbox@endimus.com, }
 { Web-site: http://www.endimus.com }
 { }
@@ -26,11 +26,11 @@ interface
 uses Windows, SysUtils, Classes;
 
 type
-  { Тип TMD5Digest используется для получения
-    результата функций вычисления хеш-суммы.
-    Содержимое записи можно использовать
-    как набор из 4 целых чисел, или как
-    массив из 16 байт }
+  { РўРёРї TMD5Digest РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РґР»СЏ РїРѕР»СѓС‡РµРЅРёСЏ
+    СЂРµР·СѓР»СЊС‚Р°С‚Р° С„СѓРЅРєС†РёР№ РІС‹С‡РёСЃР»РµРЅРёСЏ С…РµС€-СЃСѓРјРјС‹.
+    РЎРѕРґРµСЂР¶РёРјРѕРµ Р·Р°РїРёСЃРё РјРѕР¶РЅРѕ РёСЃРїРѕР»СЊР·РѕРІР°С‚СЊ
+    РєР°Рє РЅР°Р±РѕСЂ РёР· 4 С†РµР»С‹С… С‡РёСЃРµР», РёР»Рё РєР°Рє
+    РјР°СЃСЃРёРІ РёР· 16 Р±Р°Р№С‚ }
   PMD5Digest = ^TMD5Digest;
   TMD5Digest = record
     case Integer of
@@ -38,22 +38,22 @@ type
       1: (v: array[0..15] of Byte);
   end;
 
-  // вычисление хеш-суммы для строки
+  // РІС‹С‡РёСЃР»РµРЅРёРµ С…РµС€-СЃСѓРјРјС‹ РґР»СЏ СЃС‚СЂРѕРєРё
 function MD5String(const S: string): TMD5Digest;
 
-// вычисление хеш-суммы для файла
+// РІС‹С‡РёСЃР»РµРЅРёРµ С…РµС€-СЃСѓРјРјС‹ РґР»СЏ С„Р°Р№Р»Р°
 function MD5File(const FileName: string): TMD5Digest;
 
-// вычисление хеш-суммы для содержиого потока Stream
+// РІС‹С‡РёСЃР»РµРЅРёРµ С…РµС€-СЃСѓРјРјС‹ РґР»СЏ СЃРѕРґРµСЂР¶РёРѕРіРѕ РїРѕС‚РѕРєР° Stream
 function MD5Stream(const Stream: TStream): TMD5Digest;
 
-// вычисление хеш-суммы для произвольного буфера
+// РІС‹С‡РёСЃР»РµРЅРёРµ С…РµС€-СЃСѓРјРјС‹ РґР»СЏ РїСЂРѕРёР·РІРѕР»СЊРЅРѕРіРѕ Р±СѓС„РµСЂР°
 function MD5Buffer(const Buffer; Size: Integer): TMD5Digest;
 
-// преобразование хеш-суммы в строку из шестнадцатеричных цифр
+// РїСЂРµРѕР±СЂР°Р·РѕРІР°РЅРёРµ С…РµС€-СЃСѓРјРјС‹ РІ СЃС‚СЂРѕРєСѓ РёР· С€РµСЃС‚РЅР°РґС†Р°С‚РµСЂРёС‡РЅС‹С… С†РёС„СЂ
 function MD5DigestToStr(const Digest: TMD5Digest): string;
 
-// сравнение двух хеш-сумм
+// СЃСЂР°РІРЅРµРЅРёРµ РґРІСѓС… С…РµС€-СЃСѓРјРј
 function MD5DigestCompare(const Digest1, Digest2: TMD5Digest): Boolean;
 
 implementation
