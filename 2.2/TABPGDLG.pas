@@ -1,3 +1,8 @@
+(* Квадрат полибия v2.4
+ * Просто помни, сука, что программу накодил Серенков Валерий,
+ * E-Mail: <webmaster@anime.net.kg>
+ * Сайт: http://anime.net.kg/
+ *)
 unit TABPGDLG;
 
 interface
