@@ -1,0 +1,67 @@
+object ProgressForm: TProgressForm
+  Left = 0
+  Top = 0
+  BorderStyle = bsNone
+  Caption = 'ProgressForm'
+  ClientHeight = 133
+  ClientWidth = 351
+  Color = clSkyBlue
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  FormStyle = fsStayOnTop
+  OldCreateOrder = False
+  PopupMode = pmExplicit
+  PopupParent = Form38.Owner
+  Position = poOwnerFormCenter
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Image1: TImage
+    Left = 15
+    Top = 46
+    Width = 256
+    Height = 15
+  end
+  object Panel1: TPanel
+    Left = 0
+    Top = 0
+    Width = 351
+    Height = 17
+    Align = alTop
+    Alignment = taLeftJustify
+    BevelKind = bkFlat
+    BevelOuter = bvNone
+    Caption = 'Panel1'
+    Color = clSkyBlue
+    ParentBackground = False
+    TabOrder = 0
+  end
+  object Panel2: TPanel
+    Left = 0
+    Top = 17
+    Width = 351
+    Height = 116
+    Align = alClient
+    BevelInner = bvLowered
+    BevelKind = bkFlat
+    Color = 14266542
+    TabOrder = 1
+    object Label1: TLabel
+      Left = 288
+      Top = 48
+      Width = 31
+      Height = 13
+      Caption = 'Label1'
+    end
+  end
+  object Panel3: TPanel
+    Left = 40
+    Top = 51
+    Width = 185
+    Height = 41
+    Caption = 'Panel3'
+    TabOrder = 2
+  end
+end

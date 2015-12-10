@@ -1,0 +1,35 @@
+unit Unit40;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, ExtCtrls, Buttons;
+
+type
+  TProgressForm = class(TForm)
+    Panel1: TPanel;
+    Panel2: TPanel;
+    SpeedButton1: TSpeedButton;
+    procedure SpeedButton1Click(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  ProgressForm: TProgressForm;
+
+implementation
+
+uses Unit38;
+
+{$R *.dfm}
+
+procedure TProgressForm.SpeedButton1Click(Sender: TObject);
+begin
+	Close;
+end;
+
+end.

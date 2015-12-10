@@ -1,0 +1,133 @@
+unit Unit41;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls;
+
+type
+  TPassPrompt = class(TForm)
+    Edit1: TEdit;
+    Label2: TLabel;
+    Label3: TLabel;
+    Button1: TButton;
+    Button2: TButton;
+    CheckBox1: TCheckBox;
+    TextSafe: TCheckBox;
+    GroupBox1: TGroupBox;
+    procedure Button1Click(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure Edit1Change(Sender: TObject);
+    procedure CheckBox1Click(Sender: TObject);
+  private
+		ModalParam: integer;
+	public
+		function ShowModalP(ModalParam: integer): integer;
+	end;
+
+var
+	PassPrompt: TPassPrompt;
+
+implementation
+
+uses Unit38, key_generator, encoder, Unit39, Threads, TABPGDLG;
+
+{$R *.dfm}
+
+function TPassPrompt.ShowModalP(ModalParam: integer): integer;
+begin
+	PassPrompt.ModalParam := ModalParam;
+	result :=1;
+	Show;
+end;
+
+procedure TPassPrompt.Button1Click(Sender: TObject);
+var i, rand, Tmp: integer;
+		keyPtr2			:	PKey2;
+		pointer			:	PAnsiString;
+		parm				:	AnsiString;
+		_FileSize		:	int64;
+		onebyte			:	byte;
+begin
+	Generator_Settings.setRandomSeed(Edit1.Text);
+	keyptr2 := @table2;
+	if ((ModalParam = 1) or (ModalParam = 2)) and not binary_mode then begin
+		pointer:= @binary_data;
+		Form38.getFormText(pointer);
+		Form38.RichEdit1.Lines.Clear;
+		_FileSize := length(binary_data);
+		for I := 0 to 255 do
+			table[i] := i;
+		i := 0;
+		while i <= _FileSize div 1024 do begin
+			if i = 0 then begin
+				i := -1;
+				onebyte := 1;
+			end else
+				onebyte := 0;
+			if TextSafe.checked then
+				generate_random_key(0, 1024, 32, 255, false, keyPtr2)
+			else
+				generate_random_key(0, 1024,  0, 255, false, keyPtr2);
+			if ModalParam = 1 then
+				invert(keyPtr2);
+			file_decode_2dimm(pointer, keyPtr2, 0, i shl 10);
+			inc(i, onebyte + 1);
+		end;
+		setLength(Table2, 0);
+		for I := 0 to 255 do
+			table[i] := i;
+		if pagesdlg.checkbox1.checked then
+			form39.draw_graph(Frequency_analysis(@binary_data));
+		form38.richedit1.lines.Append(binary_data);
+		binary_data := '';
+		EXIT;
+	end;
+	parm:='';
+	if TextSafe.Checked then
+		parm := 'textsafe';
+	case ModalParam of
+		0: begin
+				if TextSafe.Checked then
+					generate_random_key(0, 1, 32, 255, true, keyptr2)
+				else
+					generate_random_key(0, 1,  0, 255, true, keyptr2);
+				table := table2[0];
+				setLength(table2, 0);
+				form39.Lock;
+				for I := 0 to 255 do
+					edits_array[i].text := chr(table[i]);
+				form39.unlock;
+		end;
+		1: { TODO : Threads.DynEncode }
+				Threads.Run('encode_dyn',parm);
+		2:  Threads.Run('decode_dyn',parm);
+	end;
+end;
+
+procedure TPassPrompt.CheckBox1Click(Sender: TObject);
+begin
+	if CheckBox1.Checked then
+		Edit1.PasswordChar := #0
+	else
+  	Edit1.PasswordChar := #149;
+end;
+
+procedure TPassPrompt.Edit1Change(Sender: TObject);
+begin
+	Button1.Enabled := Edit1.Text <> '';
+end;
+
+procedure TPassPrompt.FormShow(Sender: TObject);
+begin
+case ModalParam of
+	0: Label3.Caption := 'Размер ключа: 1';
+	1,2: Label3.Caption := 'Размер ключа: '+ inttostr(length(binary_data));
+end;
+TextSafe.Checked := not binary_mode;
+edit1.SetFocus;
+edit1.SelectAll;
+end;
+
+end.

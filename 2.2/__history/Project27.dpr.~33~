@@ -1,0 +1,35 @@
+program Project27;
+uses
+  Forms,
+  Unit38 in 'Unit38.pas' {Form38},
+  Unit39 in 'Unit39.pas' {Form39},
+  TABPGDLG in 'TABPGDLG.pas' {PagesDlg},
+  encoder in 'encoder.pas',
+  key_generator in 'key_generator.pas' {generator_settings},
+  Batch in 'Batch.pas' {BatchForm},
+  Threads in 'Threads.pas',
+  Unit40 in 'Unit40.pas' {ProgressForm},
+  Functions in 'Functions.pas',
+  About in 'About.pas' {AboutForm},
+  GIFImage in 'GIFImage.pas',
+  MD5 in 'MD5.pas',
+  Unit41 in 'Unit41.pas' {PassPrompt};
+
+{$R *.res}
+{$R resources.res}
+
+begin
+  Application.Initialize;
+  Application.Title := 'Квадрат Полибия v2.3';
+  Application.CreateForm(TForm38, Form38);
+  Application.CreateForm(TForm39, Form39);
+  Application.CreateForm(TPagesDlg, PagesDlg);
+  Application.CreateForm(Tgenerator_settings, generator_settings);
+  Application.CreateForm(TBatchForm, BatchForm);
+  Application.CreateForm(TProgressForm, ProgressForm);
+  Application.CreateForm(TPassPrompt, PassPrompt);
+  Application.CreateForm(TAboutForm, AboutForm);
+  Application.HintPause := 0;
+	Application.HintHidePause := 32767;
+	Application.Run;
+end.

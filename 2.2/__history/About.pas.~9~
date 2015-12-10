@@ -1,0 +1,73 @@
+unit About;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+	Dialogs, ComCtrls, GIFImage, ExtCtrls, StdCtrls;
+
+type
+  TAboutForm = class(TForm)
+    Image1: TImage;
+    Memo1: TMemo;
+    Button1: TButton;
+    procedure FormDestroy(Sender: TObject);
+    procedure Memo1MouseLeave(Sender: TObject);
+    procedure Memo1MouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
+    procedure FormShow(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+		procedure FormCreate(Sender: TObject);
+  private
+
+	public
+		gif : TGIFImage;
+	end;
+var
+	AboutForm: TAboutForm;
+	cnt,i : integer;
+implementation
+
+
+
+{$R *.dfm}
+
+procedure TAboutForm.Button1Click(Sender: TObject);
+begin
+Close;
+gif.PaintPause;
+end;
+
+procedure TAboutForm.FormCreate(Sender: TObject);
+begin
+	gif := TGIFImage.Create;
+	gif.DrawOptions := [goAnimate,goLoop,goAsync,goDirectDraw];
+	gif.AnimationSpeed := 1000;
+	gif.LoadFromFile(ExtractFilePath(application.ExeName)+'logo.gif');
+	Image1.Picture.Assign(gif);
+end;
+
+procedure TAboutForm.FormDestroy(Sender: TObject);
+begin
+//gif.stopDraw;
+//gif.paintStop;
+gif.free;
+end;
+
+procedure TAboutForm.FormShow(Sender: TObject);
+begin
+gif.PaintResume;
+end;
+
+procedure TAboutForm.Memo1MouseLeave(Sender: TObject);
+begin
+if memo1.Focused then button1.SetFocus;
+end;
+
+procedure TAboutForm.Memo1MouseMove(Sender: TObject; Shift: TShiftState; X,
+  Y: Integer);
+begin
+if memo1.Focused then button1.SetFocus;
+end;
+
+end.

@@ -1,0 +1,79 @@
+object AboutForm: TAboutForm
+  Left = 0
+  Top = 0
+  BorderIcons = [biSystemMenu]
+  BorderStyle = bsToolWindow
+  Caption = 'AboutForm'
+  ClientHeight = 285
+  ClientWidth = 468
+  Color = clSkyBlue
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  FormStyle = fsStayOnTop
+  OldCreateOrder = False
+  PopupMode = pmExplicit
+  PopupParent = Form38.Owner
+  Position = poOwnerFormCenter
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnShow = FormShow
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Image1: TImage
+    Left = 0
+    Top = 0
+    Width = 468
+    Height = 245
+    Align = alTop
+    OnClick = Image1Click
+    ExplicitWidth = 441
+    ExplicitHeight = 241
+  end
+  object Button1: TButton
+    Left = 72
+    Top = 252
+    Width = 75
+    Height = 25
+    Caption = 'paintstop'
+    TabOrder = 0
+  end
+  object Button2: TButton
+    Left = 153
+    Top = 251
+    Width = 75
+    Height = 25
+    Caption = 'paintpause'
+    TabOrder = 1
+  end
+  object Button3: TButton
+    Left = 234
+    Top = 251
+    Width = 75
+    Height = 25
+    Caption = 'stopdraw'
+    TabOrder = 2
+    OnClick = Button3Click
+  end
+  object Button4: TButton
+    Left = 315
+    Top = 252
+    Width = 75
+    Height = 25
+    Caption = 'gif.free'
+    TabOrder = 3
+    OnClick = Button4Click
+  end
+  object Button5: TButton
+    Left = 396
+    Top = 251
+    Width = 75
+    Height = 25
+    Caption = 'im.pic.free'
+    TabOrder = 4
+    OnClick = Button5Click
+  end
+end

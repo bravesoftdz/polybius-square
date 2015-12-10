@@ -1,0 +1,296 @@
+unit key_generator;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, ExtCtrls, Mask;
+
+type
+  Tgenerator_settings = class(TForm)
+    Edit1: TEdit;
+    Label1: TLabel;
+    Edit2: TEdit;
+    Label2: TLabel;
+    RadioGroup1: TRadioGroup;
+    Button1: TButton;
+    Button2: TButton;
+    ComboBox1: TComboBox;
+    MaskEdit1: TMaskEdit;
+    Label3: TLabel;
+    procedure MaskEdit1Exit(Sender: TObject);
+    procedure ComboBox1Change(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
+    procedure RadioGroup1Click(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  generator_settings: Tgenerator_settings;
+
+implementation
+
+uses Unit39, Unit38;
+
+{$R *.dfm}
+
+procedure Tgenerator_settings.Button1Click(Sender: TObject);
+var i,j,rand,tmp,seed: integer;
+begin
+if ComboBox1.ItemIndex = 0 then
+case RadioGroup1.ItemIndex of
+  0: begin
+      form39.button1.Click;
+      seed:=strtoint(edit1.Text);
+      for I := 1 to seed do           // need determinated
+        random(256);                  // random number generator
+      for I := 0 to 255 do begin
+        rand:=random(256);
+        tmp:=table[i];
+        table[i]:=table[rand];
+        table[rand]:=tmp;
+      end;
+      for i := 0 to 255 do
+        edits_array[i].Text:=chr(table[i]);
+                  form39.trackbar1.position:=1;
+                  form39.trackbar1.max:=1;
+                  form39.trackbar1.Enabled:=false;
+                  form39.MaskEdit1.Enabled:=false;
+                  form38.Oneperdata1.Enabled:=false;
+                  form38.Oneperbyte1.Enabled:=false;
+                  form38.N21.enabled:=false;
+                  form38.Oneperdata2.Enabled:=false;
+                  form38.Oneperbyte2.Enabled:=false;
+                  form38.N22.enabled:=false;
+                  form39.MaskEdit1.text:=#$31;
+                  form39.Caption:='key'+' (1-dimension)';
+      end;
+  1:  begin
+        if strtoint(edit2.text) <= 0 then
+          EXIT;
+        setLength(table2,strtoint(edit2.text));
+        for I := 0 to 255 do
+          table[i]:=i;
+        for j := 0 to length(table2)-1 do begin
+          for I := 0 to 255 do begin
+            rand:=random(256);
+            tmp:=table[i];
+            table[i]:=table[rand];
+            table[rand]:=tmp;
+          end;
+          for I := 0 to 255 do
+            table2[j][i]:=table[i];
+        end;
+                  form39.trackbar1.Enabled:=true;
+                  form39.trackbar1.position:=2;
+                  form39.trackbar1.position:=1;
+                  form39.MaskEdit1.Enabled:=true;
+                  form38.Oneperdata1.Enabled:=true;
+                  form38.Oneperbyte1.Enabled:=true;
+                  form38.N21.enabled:=true;
+                  form38.Oneperdata2.Enabled:=true;
+                  form38.Oneperbyte2.Enabled:=true;
+                  form38.N22.enabled:=true;                  
+                  form39.trackbar1.max:=length(table2);
+                  form39.MaskEdit1.text:=#$31;
+                  form39.Caption:='key'+' (2-dimensions, size: '+inttostr(length(table2))+')';
+      end;
+    end else
+    case comboBox1.ItemIndex of
+      1: begin                           //ROT-13
+        form39.Button1.Click;
+        for I := 65 to 77 do
+          table[i]:=table[i]+13;
+        for I := 78 to 90 do
+          table[i]:=table[i]-13;
+        for I := 97 to 109 do
+          table[i]:=table[i]+13;
+        for I := 110 to 122 do
+          table[i]:=table[i]-13;
+        {for I := 192 to 210 do
+          table[i]:=table[i]+13;
+        for I := 211 to 223 do
+          table[i]:=table[i]-19;
+        for I := 224 to 242 do
+          table[i]:=table[i]+13;
+        for I := 243 to 255 do
+          table[i]:=table[i]-19;}
+        for I := 0 to 255 do
+          edits_array[i].Text:=chr(table[i]);
+          form39.Caption:='ROT13';
+      end;
+      2: begin                           //ROT-47
+          form39.Button1.Click;
+          for I := 80 to 126 do
+            table[i]:=table[i-47];
+          for I := 33 to 79 do
+            table[i]:=table[i]+47;
+        for I := 0 to 255 do
+          edits_array[i].Text:=chr(table[i]);
+          form39.Caption:='ROT47';
+      end;
+      3: begin                           //Atbash (Reverse)
+          form39.Button1.Click;
+          for I := 65 to 90 do
+            table[i]:=-i+155;
+          for I := 97 to 122 do
+            table[i]:=-i+219;
+          for I := 192 to 223 do
+            table[i]:=-i+415;
+          for I := 224 to 255 do
+            table[i]:=-i+479;
+          for I := 0 to 255 do
+            edits_array[i].Text:=chr(table[i]);
+          form39.Caption:='Атбаш';
+      end;
+      4: begin                           //Shift (Caesar)
+          i:=0;j:=0;
+          form39.Button1.Click;
+          seed:=strtoint(maskedit1.Text);
+          if seed > 0 then
+            for I := 0 to seed-1 do begin
+              tmp:=table[90];            //A..Z
+              for j := 90 downto 66 do
+                table[j]:=table[j-1];
+              table[65]:=tmp;
+
+              tmp:=table[122];            //a..z
+              for j := 122 downto 98 do
+                table[j]:=table[j-1];
+              table[97]:=tmp;
+
+              tmp:=table[223];            //А..Я
+              for j := 223 downto 193 do
+                table[j]:=table[j-1];
+              table[192]:=tmp;
+              tmp:=table[168];
+              table[168]:=table[198];
+              table[198]:=tmp;
+
+              tmp:=table[255];            //а..я
+              for j := 255 downto 225 do
+                table[j]:=table[j-1];
+              table[224]:=tmp;
+              tmp:=table[184];
+              table[184]:=table[230];
+              table[230]:=tmp;
+            end;
+          if seed < 0 then
+            for I := (seed+1) to 0 do begin
+              tmp:=table[65];             //A..Z
+              for j := 65 to 89 do
+                table[j]:=table[j+1];
+              table[90]:=tmp;
+
+              tmp:=table[97];             //a..z
+              for j := 97 to 121 do
+                table[j]:=table[j+1];
+              table[122]:=tmp;
+
+              tmp:=table[192];            //А..Я
+              for j := 192 to 222 do
+                table[j]:=table[j+1];
+              table[223]:=tmp;
+              tmp:=table[168];
+              table[168]:=table[197];
+              table[197]:=tmp;
+
+              tmp:=table[224];            //а..я
+              for j := 224 to 254 do
+                table[j]:=table[j+1];
+              table[255]:=tmp;
+              tmp:=table[184];
+              table[184]:=table[229];
+              table[229]:=tmp;
+            end;
+            for I := 0 to 255 do
+              edits_array[i].Text:=chr(table[i]);
+          form39.Caption:='Цезарь (Сдвиг: '+inttostr(seed)+')';
+      end;
+      5: begin                           //Reverse (Global)
+          form39.Button1.Click;
+          for I := 0 to 255 do begin
+            table[i]:=255-i;
+            edits_array[i].Text:=chr(table[i]);
+          end;
+          form39.Caption:='Invert bytes';
+      end;
+    end;
+self.Close;
+end;
+
+procedure Tgenerator_settings.Button2Click(Sender: TObject);
+begin
+self.Close;
+end;
+
+procedure Tgenerator_settings.ComboBox1Change(Sender: TObject);
+begin
+if ComboBox1.ItemIndex = 4 then
+  begin
+    label3.Visible:=true;
+    maskedit1.Visible:=true;
+  end else begin
+    label3.Visible:=false;
+    maskedit1.Visible:=false;
+  end;
+if ComboBox1.ItemIndex > 0 then
+  begin
+    label2.Enabled:=false;
+    edit2.Enabled:=false;
+    label1.Enabled:=false;
+    edit1.Enabled:=false;
+    RadioGroup1.enabled:=false;
+  end else begin
+    RadioGroup1.enabled:=true;
+    label3.Visible:=false;
+    maskedit1.Visible:=false;
+    if RadioGroup1.ItemIndex=0 then begin
+  label2.Enabled:=false;
+  edit2.Enabled:=false;
+  label1.Enabled:=true;
+  edit1.Enabled:=true;
+end else begin
+  label2.Enabled:=true;
+  edit2.Enabled:=true;
+  label1.Enabled:=false;
+  edit1.Enabled:=false;
+end;
+  end;
+end;
+
+procedure Tgenerator_settings.MaskEdit1Exit(Sender: TObject);
+var buf:string;
+i:integer;
+begin
+buf:='';
+for I := 1 to length(maskEdit1.Text) do
+  case maskEdit1.Text[i] of
+    '0'..'9','-','+':buf:=buf+maskEdit1.Text[i];
+  end;
+maskEdit1.Text:=buf;
+if (maskEdit1.Text='') then
+  maskEdit1.Text:='1'
+end;
+
+procedure Tgenerator_settings.RadioGroup1Click(Sender: TObject);
+begin
+if RadioGroup1.ItemIndex=0 then begin
+  label2.Enabled:=false;
+  edit2.Enabled:=false;
+  label1.Enabled:=true;
+  edit1.Enabled:=true;
+end else begin
+  label2.Enabled:=true;
+  edit2.Enabled:=true;
+  label1.Enabled:=false;
+  edit1.Enabled:=false;
+end;
+
+end;
+
+end.

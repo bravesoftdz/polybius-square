@@ -1,0 +1,23 @@
+unit Batch;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls;
+
+type
+	TBatchForm = class(TForm)
+  private
+    { Private declarations }
+  public
+
+	end;
+	
+implementation
+
+uses Unit38, Unit39, TABPGDLG, encoder;
+
+{$R *.dfm}
+
+end.

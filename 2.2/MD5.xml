@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<namespace name="MD5">
+  <pointer name="PMD5Digest" type="TMD5Digest" indircnt="1" />
+  <struct name="TMD5Digest">
+    <field name="A" type="Integer" visibility="public" />
+    <field name="B" type="Integer" visibility="public" />
+    <field name="C" type="Integer" visibility="public" />
+  </struct>
+  <function name="MD5DigestToStr" visibility="private">
+    <parameters>
+      <parameter name="Digest" type="TMD5Digest" paramflags="var" />
+      <retval type="string" />
+    </parameters>
+  </function>
+  <function name="MD5String" visibility="private">
+    <parameters>
+      <parameter name="S" type="string" paramflags="const" />
+      <retval type="TMD5Digest" />
+    </parameters>
+  </function>
+  <function name="MD5File" visibility="private">
+    <parameters>
+      <parameter name="FileName" type="string" paramflags="const" />
+      <retval type="TMD5Digest" />
+    </parameters>
+  </function>
+  <function name="MD5Stream" visibility="private">
+    <parameters>
+      <parameter name="Stream" type="TStream" paramflags="const" />
+      <retval type="TMD5Digest" />
+    </parameters>
+  </function>
+  <function name="MD5Buffer" visibility="private">
+    <parameters>
+      <parameter name="Buffer" paramflags="var" />
+      <parameter name="Size" type="Integer" />
+      <retval type="TMD5Digest" />
+    </parameters>
+  </function>
+  <function name="MD5DigestCompare" visibility="private">
+    <parameters>
+      <parameter name="Digest1" type="TMD5Digest" paramflags="var" />
+      <parameter name="Digest2" type="TMD5Digest" paramflags="var" />
+      <retval type="Boolean" />
+    </parameters>
+  </function>
+</namespace>

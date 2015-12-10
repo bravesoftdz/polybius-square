@@ -1,0 +1,294 @@
+unit Functions;
+
+interface
+uses Classes, Windows, SysUtils;
+
+type
+	TFileTimes = {packed} record
+		CreationTime:  TFileTime;
+		LastWriteTime: TFileTime;
+		LastAccessTime:TFileTime;
+	end;
+
+	function ExtractTopLevelDir(Files: TStrings): string;
+	function ExtractFileNameWithoutExt(FileName: String): String;
+	function GetFileTimes(const FileName: string): TFileTimes;
+	function SetFileTimes(const FileName: string; const FileTimes:TFileTimes): boolean;
+	function  load_file(Path:string; TextMode: boolean):boolean;
+	procedure save_file(Path:string; binary_mode: boolean);
+	function 	load_key(path:string):boolean;
+	procedure save_key(path:string);
+	function garbage_collector(input:AnsiString):AnsiString;
+
+implementation
+
+uses Unit38, Unit39, encoder;
+
+function ExtractTopLevelDir(Files: TStrings): string;
+var i,i2,i3: integer;
+		minDirLevel: integer;
+		levelUpNeeded:boolean;
+		differentDirs:boolean;
+begin
+	minDirLevel:=2147483647;
+	levelUpNeeded := false;
+	differentDirs:=false;
+	for I := 0 to Files.Count - 2 do
+		if ExtractFilePath(Files[i]) <> ExtractFilePath(Files[i+1]) then
+			differentDirs := true;
+	for I := 0 to Files.Count - 1 do begin
+		i3:=0;
+		for I2 := 1 to Length(Files[i]) do
+			if Files[i][i2] = '\' then
+				inc(i3);
+		if minDirLevel = i3 then
+			levelUpNeeded := true;
+		if minDirLevel > i3 then begin
+			minDirLevel := i3;
+			levelUpNeeded:=false;
+			result:=ExtractFilePath(Files[i]);
+
+		end;
+	end;
+	if levelUpNeeded and differentDirs then begin
+	 if	result[length(result)] = '\' then
+		setLength(result,length(result)-1);
+	 for I := length(result) downto 1 do
+		if result[i] <> '\' then
+			setLength(result,length(result)-1)
+		else break;
+	end;
+end;
+
+function ExtractFileNameWithoutExt(FileName: String): String;
+var i : integer;
+		dotPos : integer;
+begin
+	FileName := ExtractFileName(FileName);
+	dotPos := -1;
+	for I := length(FileName) downto 1 do
+		 if	FileName[i] = '.' then begin
+			dotPos := i;
+			break;
+		 end;
+	if dotPos <> -1 then
+		SetLength(FileName, dotPos - 1);
+	result:=FileName;
+end;
+
+
+function GetFileTimes(const FileName: string): TFileTimes;
+var T1, T2, T3 : TFileTime;
+		h: integer;
+begin
+if FileExists(FileName) then begin
+	h:= FileOpen(FileName, fmOpenRead);
+	GetFileTime(h, @T1, @T2, @T3);
+	result.CreationTime:=T1;
+	result.LastWriteTime:=T2;
+	result.LastAccessTime:=T3;
+	FileClose(h);
+end;
+end;
+
+function SetFileTimes(const FileName: string; const FileTimes:TFileTimes): boolean;
+var T1, T2, T3 : TFileTime;
+		h: integer;
+begin
+if FileExists(FileName) then begin
+	h:= FileOpen(FileName, fmOpenWrite);
+	T1	:= FileTimes.CreationTime;
+	T2	:= FileTimes.LastWriteTime;
+	T3	:= FileTimes.LastAccessTime;
+	SetFileTime(h, @T1, @T2, @T3);
+	FileClose(h);
+	result:=true;
+end else
+	result:=false;
+end;
+
+function load_file(Path:string; TextMode: boolean):boolean;
+var _file			:	file;
+		I					:	integer;
+		i2				:	integer;
+		file_size	: integer;
+		buf				:	array[0..4095] of byte;
+		oneByte		:	AnsiChar;
+begin
+	if textmode then begin
+    form38.Cleanup_form;
+		form38.n18.Enabled := true;
+		form38.RichEdit1.Lines.LoadFromFile(Path);//Text mode
+		form38.Caption := Path;
+		form39.label37.caption:='File Name: ' + Path;
+		Result:=true;
+	end else begin                       //binary mode
+
+			assignfile(_file,Path);
+			FileMode := fmOpenRead;
+			try
+			try
+				progress := 0;
+				reset(_file,1);
+				file_size := fileSize(_file);
+				setLength(binary_data, file_size);
+				reset(_file,4096);
+				for i:=0 to fileSize(_file)-1 do begin
+					blockRead(_file,buf,1);
+					for I2 := 0 to 4095 do
+						binary_data[i * 4096 + i2 + 1] := chr(buf[i2]);
+					INC(progress,4096);
+				end;
+				reset(_file,1);
+				seek(_file,trunc(file_size / 4096) * 4096);
+				while not eof(_file) do begin
+					blockread(_file,oneByte,1);
+					binary_data[filePos(_file)] := oneByte;
+				end;
+				Result:=true;
+				except
+					setLength(binary_data,0);
+					Result:=false;
+					MessageBox(	form38.Handle,
+											PChar('Недостаточно памяти.'),
+											PChar('Error!'),
+											MB_ICONSTOP+MB_OK);
+				end;
+      finally
+				closefile(_file);
+			end;
+				
+	end;
+end;
+
+procedure save_file(Path:string; binary_mode: boolean);
+var _file	:	file;
+		I,I2	:	integer;
+		buf		:	array[0..4095] of ansichar;
+begin
+	if binary_mode then
+		try
+			assignfile(_file,Path);
+			FileMode := fmOpenWrite;
+			rewrite(_file,4096);
+			i := 1; progress:=0;
+			while i < length(binary_data)-4096 do begin
+				for I2 := 0 to 4095 do begin
+					buf[i2] := binary_data[i+i2];
+				end;
+				i := i + 4096;
+				blockWrite(_file,buf,1);
+				progress:=i;
+			end;
+			reset(_file,1);
+			seek(_file,i-1);
+			for I2 := i to length(binary_data) do
+				blockWrite(_file,binary_data[i2],1);
+		finally
+				closefile(_file);
+		end
+	else
+			form38.richedit1.Lines.SaveToFile(Path);
+end;
+
+procedure save_key(path:string);
+var key				:	file of AnsiChar;
+		un_key		:	file;
+		i, _length:	integer;
+begin
+if length(table2) = 0 then begin
+	assignfile(key,path);
+	rewrite(key);
+	for I := 0 to 255 do
+		write(key,edits_array[i].Text[1]);
+	closefile(key);
+end else begin
+	_length:=length(table2);
+	assignfile(un_key,path);
+	rewrite(un_key,256);
+	for i:=0 to _length - 1 do
+		blockWrite(un_key,table2[i],1);
+	closefile(un_key);
+	end;
+end;
+
+function load_key(path:string):boolean;
+var key						:	file;
+		i							:	integer;
+		tmp						:	AnsiChar;
+		intersections	:	AnsiString;
+begin
+form39.lock;
+assignfile(key,path);
+FileMode := fmOpenRead;
+reset(key,1);
+if (FileSize(key) mod 256) <> 0 then begin
+	result:=false;
+	closefile(key);
+  exit
+end
+else if FileSize(key)=256 then i:=0
+else if FileSize(key)>256 then i:=1
+else i:=-1;
+         case i of
+            0:   for I := 0 to 255 do begin  //1-dimensional
+								//reset(key,1);
+                  blockRead(key,tmp,1);
+                //edits_array[i].Text:='';
+                  edits_array[i].Text:=tmp;
+									form39.trackbar1.Enabled:=false;
+                  form39.trackbar1.position:=1;
+                  form39.trackbar1.max:=1;
+									form39.MaskEdit1.Enabled:=false;
+									form38.N21.enabled:=false;
+                  form38.N22.enabled:=false;
+                  form39.MaskEdit1.text:=#$31;
+									result:=true;
+								end;
+            1:  begin                         //2-dimensional
+                  reset(key,256);
+                  setLength(table2,fileSize(key));
+									for I := 0 to fileSize(key) - 1 do
+                    blockRead(key,table2[i],1);
+                  form39.trackbar1.max:=length(table2);
+									form39.trackbar1.position:=2;//perform trackbar1.onchange
+									form39.trackbar1.Enabled:=true;
+                  form39.trackbar1.position:=1;
+									form39.MaskEdit1.Enabled:=true;
+                  form38.N21.enabled:=true;
+									form38.N22.enabled:=true;
+                  form39.MaskEdit1.text:=#$31;
+									result:=true;
+                end;
+					 end;
+closefile(key);
+form39.unlock;
+
+maskcollector;
+intersections := encoder.volidate(@table);
+for I := 0 to 255 do
+	edits_array[i].color := $FFFFFF;
+for I := 1 to length(intersections) do
+	edits_array[ord(intersections[i])].color:=$7F7FFF;
+end;
+
+function garbage_collector(input:AnsiString):AnsiString;
+var i:Integer;
+begin
+i := 1;
+result := '';  //<---- f@!!!*g bug!
+while i <= length(input) do begin
+	case input[i] of
+		'0'..'9': result:=result+input[i];
+		'a'..'f': result:=result+input[i];
+		'A':      result:=result+'a';
+		'B':      result:=result+'b';
+		'C':      result:=result+'c';
+		'D':      result:=result+'d';
+		'E':      result:=result+'e';
+		'F':      result:=result+'f';
+	end;
+I := I + 1;
+end;
+end;
+end.

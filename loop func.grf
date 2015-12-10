@@ -1,0 +1,72 @@
+;This file was created by Graph (http://www.padowan.dk)
+;Do not change this file from other programs.
+[Graph]
+Version = 4.4.2.543
+MinVersion = 2.5
+OS = Windows NT 6.1 Service Pack 1
+
+[Axes]
+xMin = -927.708018259262
+xMax = 1134.62872987437
+xTickUnit = 100
+xGridUnit = 100
+xShowGrid = 1
+yMin = -1134.96583100317
+yMax = 927.370917131816
+yTickUnit = 200
+yGridUnit = 200
+yShowGrid = 1
+AxesColor = clBlue
+GridColor = 0x00FF9999
+ShowLegend = 1
+Radian = 1
+AxesStyle = 2
+
+[Func1]
+FuncType = 0
+y = x+shift-(trunc((x+shift-1)/keysize))*keysize-1
+LegendText = f( x ) = x+shift-(trunc((x+shift-1)/keysize))*keysize-1
+Color = clRed
+
+[Label1]
+Placement = 0
+Pos = 293.82118609148;-57.3333423503084
+Text = {\\rtf1\\ansi\\ansicpg1251\\deff0\\deflang1049{\\fonttbl{\\f0\\fnil\\fcharset0 Times New Roman;}{\\f1\\fnil Times New Roman;}}\n{\\colortbl ;\\red0\\green0\\blue0;}\n\\viewkind4\\uc1\\pard\\cf1\\lang1033\\f0\\fs24 f( x ) = x+shift-(trunc((x+shift-1)/keysize))*keysize-1\\lang1049\\f1\\par\n}\n
+BackgroundColor = clNone
+ShowInLegend = 0
+
+[Func2]
+FuncType = 0
+y = keysize
+LegendText = key size
+Color = clBlue
+
+[Func3]
+FuncType = 0
+y = 0
+LegendText = y = 0
+Color = clBlue
+
+[Func4]
+FuncType = 1
+x = 0
+y = t
+LegendText = x = 0
+From = -keysize*20
+To = keysize*20
+Steps = 1
+Color = clBlue
+
+[Data]
+TextLabelCount = 1
+FuncCount = 4
+PointSeriesCount = 0
+ShadeCount = 0
+RelationCount = 0
+OleObjectCount = 0
+
+[CustomFunctions]
+keySize = 512
+initKeyPos = -100
+shift = abs(initKeyPos - Trunc(initKeyPos / keysize) * keysize)
+

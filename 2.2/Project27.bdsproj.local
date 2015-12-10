@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2014.03.19 20:05:21.508.pas,C:\coder\project27\1.3\Unit1.pas=C:\coder\project27\1.3\encoder.pas</Transaction>
+    <Transaction>2014.05.02 18:28:44.424.pas,C:\coder\project27\1.3\Unit1.pas=C:\coder\project27\1.3\key_generator.pas</Transaction>
+    <Transaction>2014.05.02 18:28:44.424.dfm,C:\coder\project27\1.3\Unit1.dfm=C:\coder\project27\1.3\key_generator.dfm</Transaction>
+    <Transaction>2014.05.18 09:47:11.290.pas,C:\coder\project27\1.3\Unit48.pas=</Transaction>
+    <Transaction>2014.05.18 09:47:11.290.dfm,C:\coder\project27\1.3\Unit48.dfm=</Transaction>
+    <Transaction>2014.07.21 20:55:11.204.pas,C:\coder\project27\1.3\Unit1.pas=C:\coder\project27\1.3\Isaac.pas</Transaction>
+    <Transaction>2014.08.02 18:55:47.107.pas,C:\coder\project27\1.3\Unit1.pas=C:\coder\project27\1.3\Batch.pas</Transaction>
+    <Transaction>2014.08.02 18:59:41.050.pas,C:\coder\project27\1.3\Batch.pas=</Transaction>
+    <Transaction>2014.08.02 18:59:41.050.dfm,C:\coder\project27\1.3\Batch.dfm=</Transaction>
+    <Transaction>2014.08.02 19:04:08.251.pas,C:\coder\project27\1.3\Unit1.pas=C:\coder\project27\1.3\Batch.pas</Transaction>
+    <Transaction>2014.08.02 19:04:08.251.dfm,C:\coder\project27\1.3\Unit1.dfm=C:\coder\project27\1.3\Batch.dfm</Transaction>
+    <Transaction>2014.08.03 18:14:58.376.pas,C:\coder\project27\1.3\Progress.pas=C:\coder\project27\1.3\ProgressFRM.pas</Transaction>
+    <Transaction>2014.08.03 18:14:58.376.dfm,C:\coder\project27\1.3\Progress.dfm=C:\coder\project27\1.3\ProgressFRM.dfm</Transaction>
+    <Transaction>2014.08.03 18:20:51.302.pas,C:\coder\project27\1.3\ProgressFRM.pas=C:\coder\project27\1.3\Progress.pas</Transaction>
+    <Transaction>2014.08.03 18:20:51.302.dfm,C:\coder\project27\1.3\ProgressFRM.dfm=C:\coder\project27\1.3\Progress.dfm</Transaction>
+    <Transaction>2014.08.03 18:24:29.039.pas,C:\coder\project27\1.3\Progress.pas=</Transaction>
+    <Transaction>2014.08.03 18:24:29.039.dfm,C:\coder\project27\1.3\Progress.dfm=</Transaction>
+    <Transaction>2014.08.03 18:25:23.548.pas,C:\coder\project27\1.3\Unit1.pas=C:\coder\project27\1.3\Unit40.pas</Transaction>
+    <Transaction>2014.08.03 18:25:23.548.dfm,C:\coder\project27\1.3\Unit1.dfm=C:\coder\project27\1.3\Unit40.dfm</Transaction>
+    <Transaction>2014.08.07 15:02:02.323.pas,C:\coder\project27\2.2\Unit1.pas=C:\coder\project27\2.2\Functions.pas</Transaction>
+    <Transaction>2014.08.10 15:39:59.873.pas,C:\coder\project27\2.2\Unit1.pas=C:\coder\project27\2.2\About.pas</Transaction>
+    <Transaction>2014.08.10 15:39:59.883.dfm,C:\coder\project27\2.2\Unit1.dfm=C:\coder\project27\2.2\About.dfm</Transaction>
+    <Transaction>2014.09.14 01:27:01.920.pas,C:\coder\project27\2.2\Isaac.pas=</Transaction>
+    <Transaction>2015.01.15 20:55:22.357.pas,C:\coder\project27\2.2\Unit1.pas=C:\coder\project27\2.2\MD5.pas</Transaction>
+    <Transaction>2015.01.22 19:04:49.456.pas,C:\coder\project27\2.2\Unit1.pas=C:\coder\project27\2.2\Unit41.pas</Transaction>
+    <Transaction>2015.01.22 19:04:49.466.dfm,C:\coder\project27\2.2\Unit1.dfm=C:\coder\project27\2.2\Unit41.dfm</Transaction>
+  </Transactions>
+</BorlandProject>

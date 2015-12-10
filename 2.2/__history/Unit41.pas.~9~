@@ -1,0 +1,103 @@
+unit Unit41;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls;
+
+type
+  TPassPrompt = class(TForm)
+    Label1: TLabel;
+    Edit1: TEdit;
+    Label2: TLabel;
+    Label3: TLabel;
+    Button1: TButton;
+    Button2: TButton;
+    CheckBox1: TCheckBox;
+    TextSafe: TCheckBox;
+    GroupBox1: TGroupBox;
+    procedure Button1Click(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure Edit1Change(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
+    procedure CheckBox1Click(Sender: TObject);
+  private
+		ModalParam: integer;
+	public
+		function ShowModalP(ModalParam: integer): integer;
+	end;
+
+var
+	PassPrompt: TPassPrompt;
+
+implementation
+
+uses Unit38, key_generator, encoder, Unit39;
+
+{$R *.dfm}
+
+function TPassPrompt.ShowModalP(ModalParam: integer): integer;
+begin
+	PassPrompt.ModalParam := ModalParam;
+	result :=	PassPrompt.ShowModal;
+end;
+
+procedure TPassPrompt.Button1Click(Sender: TObject);
+var i, rand, Tmp: byte;
+begin
+	case ModalParam of
+  	0: begin
+				Generator_Settings.setRandomSeed(Edit1.Text);
+				for I := 0 to 255 do
+					table[i] := i;
+				if TextSafe.Checked then
+					for I := 32 to 255 do begin
+						rand:=Random(224)+32; 				// 32 <= f(x) <= 255
+						tmp:=table[i];
+						table[i]:=table[rand];
+						table[rand]:=tmp;
+				end else
+					for I := 0 to 255 do begin
+						rand:=Random(256);           //  0 <= f(x) <= 255
+						tmp:=table[i];
+						table[i]:=table[rand];
+						table[rand]:=tmp;
+				end;
+				form39.Lock;
+				for I := 0 to 255 do
+					edits_array[i].text := chr(table[i]);
+				form39.unlock;
+		end;
+		1:;
+	end;
+end;
+
+procedure TPassPrompt.Button2Click(Sender: TObject);
+begin
+	CloseModal;
+end;
+
+procedure TPassPrompt.CheckBox1Click(Sender: TObject);
+begin
+	if CheckBox1.Checked then
+		Edit1.PasswordChar := #0
+	else
+  	Edit1.PasswordChar := #149;
+end;
+
+procedure TPassPrompt.Edit1Change(Sender: TObject);
+begin
+	Button1.Enabled := Edit1.Text <> '';
+end;
+
+procedure TPassPrompt.FormShow(Sender: TObject);
+begin
+case ModalParam of
+	0: Label3.Caption := 'Размер ключа: 1';
+	1: Label3.Caption := 'Размер ключа: Авто';
+end;
+TextSafe.Checked := not binary_mode;
+end;
+
+end.

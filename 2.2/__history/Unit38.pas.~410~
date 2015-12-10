@@ -1,0 +1,1187 @@
+﻿{Квадрат полибия v2.3
+Все права никому не принадрежат. Сыра нет.
+}
+unit Unit38;
+
+interface
+
+{#region Uses}{$REGION}
+uses
+	Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+	Dialogs, StdCtrls, Buttons, Menus, ImgList, ExtDlgs, ExtCtrls, ComCtrls, ShellApi,
+	Inifiles,encoder, Threads, ActnList;
+{$ENDREGION}
+
+{#region Classes}{$REGION}
+type
+  TForm38 = class(TForm)
+    Menu: TMainMenu;
+    N1: TMenuItem;
+    N2: TMenuItem;
+    N3: TMenuItem;
+    N4: TMenuItem;
+    N5: TMenuItem;
+    N6: TMenuItem;
+    N7: TMenuItem;
+    N8: TMenuItem;
+    N9: TMenuItem;
+    N10: TMenuItem;
+    N11: TMenuItem;
+    N12: TMenuItem;
+    ImageList: TImageList;
+    N13: TMenuItem;
+    N14: TMenuItem;
+    N15: TMenuItem;
+    RichEdit1: TMemo;
+    N16: TMenuItem;
+    N17: TMenuItem;
+    tetxtload: TOpenDialog;
+    codesave: TSaveDialog;
+    N18: TMenuItem;
+
+    StaticText1: TStaticText;
+    N19: TMenuItem;
+    N20: TMenuItem;
+    N21: TMenuItem;
+    N22: TMenuItem;
+    N23: TMenuItem;
+    N24: TMenuItem;
+    N25: TMenuItem;
+    N26: TMenuItem;
+		N27: TMenuItem;
+    ActionList1: TActionList;
+    SelectAll: TAction;
+    Button1: TButton;
+    N28: TMenuItem;
+    N29: TMenuItem;
+    N30: TMenuItem;
+    N31: TMenuItem;
+    N32: TMenuItem;
+    N33: TMenuItem;
+    procedure N13Click(Sender: TObject);
+    procedure N33Click(Sender: TObject);
+    procedure N31Click(Sender: TObject);
+    procedure N30Click(Sender: TObject);
+    procedure N28Click(Sender: TObject);
+    procedure FormResize(Sender: TObject);
+    procedure N26Click(Sender: TObject);
+    procedure SelectAllExecute(Sender: TObject);
+    procedure N23Click(Sender: TObject);
+    procedure Oneperbyte2Click(Sender: TObject);
+    procedure Oneperbyte1Click(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
+    procedure N20Click(Sender: TObject);
+    procedure RichEdit1MouseLeave(Sender: TObject);
+    procedure RichEdit1MouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
+    procedure N18Click(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+		procedure N7Click(Sender: TObject);
+    procedure N2Click(Sender: TObject);
+    procedure N14Click(Sender: TObject);
+    procedure N3Click(Sender: TObject);
+    procedure N5Click(Sender: TObject);
+    procedure N16Click(Sender: TObject);
+    procedure N8Click(Sender: TObject);
+    procedure N15Click(Sender: TObject);
+    procedure N17Click(Sender: TObject);
+    procedure N12Click(Sender: TObject);
+    procedure N10Click(Sender: TObject);
+		procedure FormActivate(Sender: TObject);
+		
+		private
+			form_activated:boolean;
+			procedure showYourHint(hnt : string; currx : integer; curry : integer);
+      procedure WinProc1(var Msg: TMessage); message WM_SYSCOMMAND;
+			procedure OnMove(var Msg: TWMMove); message WM_MOVE;
+		public
+			procedure getFormText(out result: PAnsiString);
+			procedure Cleanup_form;
+		protected
+			procedure WMDropFiles(var Msg: TWMDropFiles); message WM_DROPFILES;
+	end;
+
+TNewClass = class (TPersistent)
+	public
+		procedure trackbar_onchange(Sender: TObject);
+
+	end;
+{$ENDREGION}
+
+{#region Variables/Constants}{$REGION}
+var
+	Form38			: TForm38;
+	Obj					: TNewClass;
+	trackbar		:	ttrackbar;
+	binary_mode	:	boolean;
+	binary_data	:	Ansistring;
+	frequence		: TFrequency; //Частотный анализ
+	table				: TKey; 			//ключ
+	table2			: TKey2;			//двумерный ключ
+{$ENDREGION}
+
+implementation
+
+uses Unit39, TABPGDLG, key_generator, Unit40, Batch, Functions, About, Unit41;
+{$SETPEFlAGS
+  IMAGE_FILE_RELOCS_STRIPPED or
+  IMAGE_FILE_DEBUG_STRIPPED or
+	IMAGE_FILE_LINE_NUMS_STRIPPED or
+  IMAGE_FILE_LOCAL_SYMS_STRIPPED}
+  { Что я здесь сделал?
+    IMAGE_FILE_RELOCS_STRIPPED - отрезали релоки
+    IMAGE_FILE_DEBUG_STRIPPED - убрали из ехе Debug информацию
+    IMAGE_FILE_LINE_NUMS_STRIPPED - убрали из exe информацию о номерах строк
+    IMAGE_FILE_LOCAL_SYMS_STRIPPED - убрали local symbol
+  }
+{$R *.dfm}
+
+{#region Form Events}{$REGION}
+
+	{#region Drag'n Drop}{$REGION}
+procedure TForm38.WMDropFiles(var Msg: TWMDropFiles);
+var
+  DropH: HDROP;               // дескриптор операции перетаскивания
+  DroppedFileCount: Integer;  // количество переданных файлов
+  FileNameLength: Integer;    // длина имени файла
+  FileName: string;           // буфер, принимающий имя файла
+  I: Integer;                 // итератор для прохода по списку
+	DropPoint: TPoint;          // структура с координатами операции Drop
+label FF089635;
+begin
+  inherited;
+  // Сохраняем дескриптор
+  DropH := Msg.Drop;
+  try
+    // Получаем количество переданных файлов
+    DroppedFileCount := DragQueryFile(DropH, $FFFFFFFF, nil, 0);
+    // Получаем имя каждого файла и обрабатываем его
+		 if	DroppedFileCount = 1 then begin
+			// получаем размер буфера
+			I:=0;
+			FileNameLength := DragQueryFile(DropH, I, nil, 0);
+			// создаем буфер, который может принять в себя строку с именем файла
+			// (Delphi добавляет терминирующий ноль автоматически в конец строки)
+			SetLength(FileName, FileNameLength);
+			// получаем имя файла
+			DragQueryFile(DropH, I, PChar(FileName), FileNameLength + 1);
+			// что-то делаем с данным именем (все зависит от вашей фантазии)
+			// ... код обработки пишем здесь
+
+			//SetWindowPos(Form38.Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOSIZE or SWP_NOMOVE);
+			 SetForegroundWindow(Form38.Handle);
+			if AnsiLowerCase(ExtractFileExt(FileName)) = '.txt' then
+				if messageDlg('Load As Text?',mtConfirmation,[mbYes,mbNo],0) = 6 then
+					load_file(FileName,True)
+				else goto FF089635 //trolololol
+			else
+			FF089635: begin
+				tetxtload.FileName:=FileName;
+				tetxtload.FilterIndex:=1;
+				button1.Click;
+			end;
+			form39.label37.caption:='File Name: ' + FileName;
+		end else begin
+			SetForegroundWindow(Form38.Handle);
+			batchForm.Show;
+			for I := 0 to Pred(DroppedFileCount) do
+			begin
+				// получаем размер буфера
+				FileNameLength := DragQueryFile(DropH, I, nil, 0);
+				// создаем буфер, который может принять в себя строку с именем файла
+				// (Delphi добавляет терминирующий ноль автоматически в конец строки)
+				SetLength(FileName, FileNameLength);
+				// получаем имя файла
+				DragQueryFile(DropH, I, PChar(FileName), FileNameLength + 1);
+				// что-то делаем с данным именем (все зависит от вашей фантазии)
+				// ... код обработки пишем здесь
+        batchForm.listBox1.items.Add(FileName);
+		 end;
+		end;
+    // Опционально: получаем координаты, по которым произошла операция Drop
+    DragQueryPoint(DropH, DropPoint);
+    // ... что-то делаем с данными координатами здесь
+  finally
+		// Финализация - разрушаем дескриптор
+		// не используйте DropH после выполнения данного кода...
+		DragFinish(DropH);
+	end;
+	// Говорим о том, что сообщение обработано
+	Msg.Result := 0;
+end;
+{$ENDREGION}
+
+	{#region Form.WinProc}{$REGION}
+procedure TForm38.WinProc1(var Msg: TMessage);
+begin
+	if (Msg.wParam = SC_MAXIMIZE) then
+		begin
+			// тут выполнится код при разворачивании
+			if form39.WindowState = wsNormal then
+			if not form39.Visible then inherited else begin inherited;
+				form38.Width:=form38.Width-form39.Width;
+				form39.Left:=form38.Width+form38.Left;
+				form39.Top:=form38.Top;
+			end;
+		end
+	else
+	if (Msg.wParam = SC_CLOSE) then begin   //Close form
+			DragAcceptFiles(Self.Handle, False);//dont accept drag and drop
+			application.Terminate;
+		end
+	else
+		inherited;  //save descriptor
+end;
+	{$ENDREGION}
+
+	{#region Form.onCreate}{$REGION}
+procedure TForm38.FormCreate(Sender: TObject);
+	const
+		CNOTFOUND = -1;
+	var
+		sAppPath: string;
+		inifile:tinifile;
+		liValue: longint;
+begin
+	{Получаем путь к ЕХЕ-файлу приложения.}
+	sAppPath:=ExtractFilePath(Application.exename);
+	{Создаем объект TINIFile.}
+	inifile:= tinifile.create(sAppPath+'spo_settings.ini');
+	try
+		{Пытаемся считать значение Left.}
+		liValue:=inifile.readinteger('InterFace','Left',cNOTFOUND);
+		{Проверяем, считано ли значение.}
+		if liValue = cNOTFOUND then begin
+			{Свойства в INI-файле не найдены - центруем форму.}
+			Left:= (Screen.Width - (Width+350)) div 2 ;
+			height:= Abs(screen.Height-150);
+			Top:= (Screen.Height - Height) div 2;
+		end else begin
+			{Считываем значения из INI-файла.}
+			Left  :=inifile.readinteger('InterFace','Left',Left);
+			Top   :=inifile.readinteger('InterFace','Top',Top);
+			width :=inifile.readinteger('InterFace','width',width);
+			height:=inifile.readinteger('InterFace','height',height);
+			end;
+	finally
+		inifile.Free;
+	end;
+	form_activated:=false;
+	DragAcceptFiles(Handle, True);  //accept deag n drop requests
+	setLength(table2,0);  //alloc mem
+end;
+{$ENDREGION}
+
+	{#region Form.onDestroy}{$REGION}
+procedure TForm38.FormDestroy(Sender: TObject);
+var inifile:tInifile;
+begin
+{Создаем объект TINIFile.}
+inifile:=tinifile.Create(ExtractFilePath(Application.ExeName)+'spo_settings.ini');
+	try
+	{Записываем свойства в INI-файл.}
+		inifile.WriteInteger('InterFace','Left',Left);
+		inifile.WriteInteger('InterFace','Top',Top);
+		inifile.WriteInteger('InterFace','Width',Width);
+		inifile.WriteInteger('InterFace','Height',Height);
+	finally
+		inifile.Free;
+	end;
+end;
+{$ENDREGION}
+
+	{#region Form.onActivate}{$REGION}
+procedure TForm38.FormActivate(Sender: TObject);
+var inifile:tInifile;
+path : string;
+begin
+if not form_activated then begin
+inifile := tinifile.Create(ExtractFilePath(Application.ExeName)+'spo_settings.ini');
+with richedit1 do begin
+	Font.Charset 		:=inifile.ReadInteger('Font'		 ,'Charset'			,1);
+	Font.Color   		:=inifile.ReadInteger('Font'		 ,'Color'				,65280);
+	Font.Height  		:=inifile.ReadInteger('Font'		 ,'Height'			,-11);
+	Font.name    		:=inifile.ReadString ('Font'		 ,'Name'				,'Consolas');
+	Font.Orientation:=inifile.ReadInteger('Font'		 ,'Orientation'	,0);
+	Font.Size				:=inifile.ReadInteger('Font'		 ,'Size'		 		,8);
+	Color						:=inifile.ReadInteger('Font'		 ,'BgColor'	 		,0);
+	WordWrap				:=inifile.ReadBool	 ('Interface','word_wrap'		,false);
+	if 								inifile.ReadBool	 ('Interface','def_key'			,false) then begin
+		path					:=inifile.ReadString ('Interface','def_key_path','');
+		if FileExists(path) then
+			if not load_key(path) then
+				MessageDlg('Ключ по умолчанию повреждён!',mtWarning,[mbOk],0)
+			else
+				if length(table2) > 0 then
+					form39.Caption := ExtractFileName(path)+
+													' (2-dimensions, size: '+inttostr(length(table2))+')'
+				else
+					form39.Caption := ExtractFileName(path)+' (1-dimension)'
+	end;
+
+if WordWrap then
+		 ScrollBars := ssVertical
+else ScrollBars := ssboth;
+end;
+if inifile.ReadBool('Encoding',	'forced_text',false) then begin
+	N29.Checked := true;
+	N33.Checked := true;
+end;
+
+inifile.Free;
+binary_mode 	:= false;
+pagesdlg.show;
+pagesdlg.hide;
+form_activated:= true;
+end;
+end;
+{$ENDREGION}
+
+	{#region Form.OnMove}{$REGION}
+procedure TForm38.OnMove(var Msg: TWMMove);
+begin
+if application.Terminated then
+	EXIT;
+if form_activated then begin
+{  form38.left:=random(1440); //make me wet X-D
+	 form38.Top:=random(900)};
+	form39.Left	:=	form38.Left+form38.Width;
+	form39.Top	:=	form38.Top;
+end;
+end;
+{$ENDREGION}
+
+	{#region Form.OnResize}{$REGION}
+procedure TForm38.FormResize(Sender: TObject);
+begin
+if application.Terminated then
+	EXIT;
+if form_activated then begin
+	form39.Left	:=	form38.Left+form38.Width;
+	form39.Top	:=	form38.Top;
+end;
+end;
+	{$ENDREGION}
+
+	{#region Trackbar.OnChange}{$REGION}
+procedure TNewClass.trackbar_onchange(Sender: TObject);
+var buf:string;
+	i:integer;
+	page_Size,_position:integer;
+begin
+	if Sender is Ttrackbar then begin
+	_position := trackbar.position;
+  page_Size:=strtoint(pagesdlg.MaskEdit1.text);                       //ffffuuuu
+		buf:='';                  //uuuuuuu
+																		 //uuuuuu
+		if trackbar.position< trackbar.max then                           //uuuuuuuu
+      for I := 1 to page_Size do                                      //...
+				buf:=buf+binary_data[i+ _position*page_Size ]         //  ....
+		else                                                              //   ..
+			for I := 1 to length(binary_data) -                             //    .
+        trunc(length(binary_data)/page_Size)*page_Size do             //  ....
+				buf:=buf+binary_data[i+ _position*page_Size ];        //..
+				form38.RichEdit1.Lines.Clear;
+				form38.RichEdit1.Lines[0]:=strtoHex(buf);						            // .. .
+			//freq(0,true);
+  with trackbar do begin                                              //  ..
+		if position<>0 then                                               //    ..
+      form38.showYourHint(inttohex(position*page_Size,8),             //    . .
+    left-50,trunc((height-10)*position/max-5*position/max))           //  ..
+    else                                                              // ...
+			form38.showYourHint(inttohex(position*page_Size,8),left-50,0);  //........
+			{Пошёл дед рубить картошку гвоздодёром,
+			Так у него курица и родила щенка.}
+	end;
+end;
+
+end;
+{$ENDREGION}
+
+	{#region others}{$REGION}
+
+procedure TForm38.SelectAllExecute(Sender: TObject);
+begin
+	RichEdit1.SelectAll;
+end;
+
+procedure TForm38.RichEdit1MouseLeave(Sender: TObject);
+begin
+		statictext1.Visible := binary_mode and not statictext1.Visible;
+end;
+
+procedure TForm38.RichEdit1MouseMove(Sender: TObject; Shift: TShiftState; X,
+	Y: Integer);
+begin
+if binary_mode and not pagesdlg.Visible and not trackbar.Focused and enabled then begin
+	trackbar.SetFocus;
+	statictext1.Visible := false;
+end;
+end;
+{$ENDREGION}
+
+{$ENDREGION}
+
+{#region Form Methods}{$REGION}
+procedure TForm38.Cleanup_form;
+var i:byte;
+begin
+if binary_mode then
+	freeandnil(trackbar);
+binary_mode				:=	false;
+n18.Enabled				:=	false;
+n29.Enabled				:=	true;
+n30.Enabled				:=	true;
+n31.Enabled				:=	true;
+richedit1.ReadOnly:=  false;
+richedit1.Lines.Clear;
+form38.Caption		:=	'';
+binary_data				:=	'';
+form39.label37.Caption := 'File Name:';
+form39.label38.Caption := 'File Size:';
+form39.label39.Caption := 'Encode/Decode Time:';
+if pagesdlg.wordwrap.Checked then begin
+	richedit1.ScrollBars	:=	ssVertical;
+	richedit1.WordWrap		:=	true
+end
+else begin
+	richedit1.ScrollBars	:=	ssBoth;
+	richedit1.WordWrap		:=	false
+end;
+
+for I := 0 to 255 do
+	frequence[i] := 0;
+with form39.Image1 do
+begin
+	Canvas.Brush.Color := 16759152;
+	Canvas.FillRect(Rect(0,0,Width,Height));
+end;
+end;
+
+procedure TForm38.showYourHint(hnt: string; currx, curry: integer);
+begin
+{* here u will have to check that (currx should not be negative)
+ * and (currx + statictext1.width should not be greater than your forms width)
+ * else you will have to change curr x
+ * similarly for curry u will have to check that (it is not negative)
+ * and ( curry + static1.height is not greater that forms height)
+ * else you will have to reset that too}
+statictext1.left := currx;
+statictext1.top := curry;
+statictext1.caption := hnt;
+statictext1.visible := true;
+end;
+
+procedure TForm38.getFormText(out result: PAnsiString);
+var I			: longint;
+		Buf		:	AnsiString;
+		Nel		:	AnsiString;
+begin
+case pagesdlg.RadioGroup.ItemIndex of //New line format
+	0:NeL:=#$0D+#$0A;          //CR+LF
+	1:NeL:=#$0D;               //CR
+	2:NeL:=#$0A;               //LF
+	3:NeL:='';
+end;
+result^ := '';
+for I := 0 to Richedit1.Lines.Count - 1 do begin
+	result^ := result^ + Richedit1.Lines[I];
+	if i < Richedit1.lines.count - 1 then
+		result^ := result^ + NeL;
+end;
+end;
+{$ENDREGION}
+
+{#region Main Menu}{$REGION}
+
+	{#region Menu.Files}{$REGION}
+procedure TForm38.N2Click(Sender: TObject);
+var _file				: file;
+		file_size		:	integer;
+		i2					:	integer;
+		page_Size	:	integer;
+label FF541302;
+begin
+tetxtload.Filter := 'Binary Data|*|Text Data|*.txt';
+if sender is TMenuItem then begin
+	if tetxtload.execute then
+	FF541302: begin
+		if fileExists(tetxtload.filename) then
+		case tetxtload.FilterIndex of
+		 2: load_file(tetxtload.FileName,True);
+		 1: begin
+					Cleanup_form;
+					assignfile(_file,tetxtload.FileName);
+					reset(_file,1);
+					file_size := filesize(_file);
+					closefile(_file);
+					form39.label38.Caption := 'File Size: ' + inttostr(file_size);
+					richedit1.Lines.Clear;
+					binary_mode						:=	True;
+					form38.Caption				:=	tetxtload.FileName + ' (binary mode)';
+					form39.label37.caption:=	'File Name: '+tetxtload.FileName;
+					Richedit1.ReadOnly		:=	True;
+					Richedit1.WordWrap		:=	true;
+					Richedit1.ScrollBars	:=	ssNone;
+					n18.Enabled						:=	true;
+					n29.Enabled						:=	false;
+					n30.Enabled						:=	false;
+					n31.Enabled						:=	false;
+					page_Size							:=	strtoint(pagesdlg.MaskEdit1.Text);
+					trackbar							:=	ttrackbar.Create(form38);
+				with trackbar do begin
+					Parent			:=	form38;
+					Name				:=	'trackbar';
+					Orientation	:=	trVertical;
+					Left				:=	clientwidth-32;
+					Top					:=	0;
+					Width				:=	32;
+					Min					:=	0;
+					Max					:=	file_size div page_Size;
+					Align				:=	alRight;
+					TickStyle		:=	tsManual;
+					TickMarks		:=	tmTopLeft;
+					Position		:=	0;
+					OnChange		:=	obj.trackbar_onchange;
+					HandleNeeded;
+					tickstyle		:=	tsNone;  //clear ticks
+					tickstyle		:=	tsManual;
+					for I2 := 0 to max do
+						if (i2 mod trunc(1048576 / page_Size)) = 0 then
+					settick(i2);
+				end;
+					if file_size >= Thresold then begin
+						Threads.run('load_file');
+						EXIT;
+					end else
+						if load_file(tetxtload.FileName,False) then begin
+							trackbar.Perform(WM_KEYDOWN,VK_UP,0);
+							trackbar.Perform(WM_KEYUP,VK_UP,0); //perform trackbar.onChange
+						end
+						else cleanup_form;
+
+				end;
+		end;
+	end;
+end else if (sender as TButton).name = 'Button1' then goto FF541302; //lol
+end;
+
+procedure TForm38.N5Click(Sender: TObject);
+begin
+if pagesdlg.checkbox6.checked then
+	codesave.initialDir := pagesdlg.edit3.text;
+if binary_mode then begin
+		codesave.Filter		  := 'Binary Data|*';
+		codesave.DefaultExt := '';
+		if codesave.Execute() then
+			if length(binary_data) >= Thresold then
+				threads.run('save_file')
+			else
+				save_file(codesave.filename, true);
+end else begin
+		codesave.Filter			:= 'Text File|*.txt';
+		codesave.DefaultExt := '*.txt';
+    if codesave.Execute() then
+      save_file(codesave.filename, false);
+end;
+end;
+
+procedure TForm38.N18Click(Sender: TObject);
+begin
+Cleanup_form;
+end;
+
+procedure TForm38.N26Click(Sender: TObject);
+begin
+BatchForm.show;
+form38.enabled:=false;
+form39.Enabled:=false;
+end;
+
+procedure TForm38.N7Click(Sender: TObject);
+begin
+application.Terminate;
+end;
+{$ENDREGION}
+
+	{#region Menu.Key_Editor}{$REGION}
+procedure TForm38.N23Click(Sender: TObject);
+begin
+generator_settings.ShowModal;
+end;
+
+procedure TForm38.N28Click(Sender: TObject);
+begin
+form39.button1.click;
+end;
+
+procedure TForm38.N30Click(Sender: TObject);
+var I			: longint;
+		Buf		:	AnsiString;
+		Nel		:	AnsiString;
+		keyPTR: PKey;
+begin
+if binary_mode then
+	EXIT;
+buf:='';
+case pagesdlg.RadioGroup.ItemIndex of //New line format
+	0:NeL:=#$0D+#$0A;          //CR+LF
+	1:NeL:=#$0D;               //CR
+	2:NeL:=#$0A;               //LF
+	3:NeL:='';
+end;
+for I := 0 to Richedit1.Lines.Count - 1 do begin
+	buf := buf + Richedit1.Lines[I];
+	if i < Richedit1.lines.count - 1 then
+		buf := buf + NeL;
+end;
+richedit1.Lines.Clear;
+for I := 0 to 255 do
+	table[i] := i;
+keyPTR := @table;
+richedit1.Lines.Append(encode( 	buf,
+																keyptr,
+																strtoint(pagesdlg.Edit1.text),
+																pagesdlg.edit2.text
+															));
+end;
+
+procedure TForm38.N31Click(Sender: TObject);
+var I			: longint;
+		Buf1	:	AnsiString;
+		keyPTR: PKey;
+begin
+if binary_mode then
+	EXIT;
+i:=0; buf1:='';
+while I < Richedit1.Lines.Count do begin
+	buf1 := buf1 + Richedit1.Lines[I];
+	Inc(I);
+end;
+richedit1.Lines.clear;
+for I := 0 to 255 do
+	table[i] := i;
+keyPTR := @table;
+buf1 := decode(garbage_collector(buf1),keyPtr);
+for I := 1 to length(buf1) do
+	if buf1[i] = #0 then
+		buf1[i] := #$3f;
+richedit1.lines.Add(buf1);
+end;
+
+procedure TForm38.N33Click(Sender: TObject);
+begin
+N33.Checked:= not N33.Checked;
+N29.Checked:= N33.Checked;
+PagesDlg.checkBox2.checked := N33.Checked;
+end;
+
+procedure TForm38.N3Click(Sender: TObject);
+begin
+tetxtload.Filter := 'Key|*';
+if tetxtload.execute then
+	if fileExists(tetxtload.filename) then
+		if load_key(tetxtload.FileName) then
+			if length(table2) > 0 then
+				form39.Caption := ExtractFileName(tetxtload.filename)+
+													' (2-dimensions, size: '+inttostr(length(table2))+')'
+			else
+				form39.Caption := ExtractFileName(tetxtload.filename)+' (1-dimension)'
+		else
+			messageDlg( 'Key corrupted!', mtError, [mbOK], 0);
+end;
+
+procedure TForm38.N16Click(Sender: TObject);
+begin
+codesave.Filter			:= 'all files|*';
+codesave.DefaultExt := '';
+if codesave.Execute() then
+	save_key(codesave.filename);
+end;
+
+procedure TForm38.N8Click(Sender: TObject);
+begin
+form39.Visible := not form39.Visible;
+if form39.Visible then begin
+	if form38.WindowState = wsMaximized then begin
+		form38.Width := form38.Width - form39.Width;
+		form39.Left	 := form38.Left+form38.Width;
+		form39.Top	 := form38.Top;
+	end;
+end else
+	if form38.WindowState = wsMaximized then
+		form38.Width := form38.Width + form39.Width;
+N25.checked:= form39.Visible;
+end;
+{$ENDREGION}
+
+	{#region Menu.Doings}{$REGION}
+
+		{#region Encode/Decode}{$REGION}
+procedure TForm38.N14Click(Sender: TObject);
+var
+	i						:	integer;
+	NeL					:	AnsiString;
+	t0					: cardinal;
+	buf					: AnsiString;
+	pointer			: PAnsiString;
+	keyptr			: Pkey;
+	turbo_mode	:	boolean;
+	freq_analyze:	boolean;
+begin
+		Form39.maskcollector;
+		keyptr 			 := @table;
+		freq_analyze := pagesdlg.checkbox1.checked;
+		turbo_mode 	 := pagesdlg.checkbox4.checked;
+		t0					 :=	gettickcount;
+		if TransposCnt(keyPTR) = 0 then begin
+			case passPrompt.ShowModalP(0) of
+				1:;
+			else EXIT;
+			end;
+		end;
+		if not pagesdlg.CheckBox5.checked then
+		if length(volidate(keyPtr)) <> 0 then
+			if turbo_mode then begin
+       messageBox(
+                  handle,
+                  PChar('Ключ повреждён! Продолжить?'+#$0D+#$0A+
+                         'Если да, отключите "Турбо - режим."'),
+                  PChar('Внимай!'),
+                  MB_ICONWARNING+
+                  MB_OK
+                  );
+       EXIT;
+			end
+			else
+			if messageBox(
+									handle,
+                  PChar('Ключ повреждён! Продолжить?'),
+									PChar('Внимай!'),
+									MB_ICONWARNING+
+									MB_YESNO
+									) = 7 then EXIT;
+
+	if binary_mode then begin
+
+		{if length(table2)>0 then
+			for I := 0 to 255 do
+				table[i]:=table2[form39.trackbar1.position-1][i]; }
+		if length(binary_data) >= Thresold then begin
+			Threads.Run('encode');
+			EXIT;
+		end else begin
+		pointer := @binary_data;    //get data addr
+		if turbo_mode then begin
+			invert(keyptr);
+			file_decode(pointer,keyptr); // :-)
+			invert(keyptr);
+		{* invert again to make source key
+		 * In that case, decode(data, decode(key,key)) = encode(data,key)
+		 * Because decode faster than encode. }
+		end else
+			file_encode(pointer,keyptr);
+		end;
+		form39.label39.Caption := 'Encode/Decode Time: '+inttostr(gettickcount-t0)+'ms';
+		if freq_analyze then
+			frequence := Frequency_analysis(pointer);            //frequency analyze
+		trackbar.position:=0; //perform trackbar.onChange
+		trackbar.Perform(WM_KEYDOWN,VK_UP,0);
+		trackbar.Perform(WM_KEYUP,VK_UP,0);
+	end                         
+	else begin
+	I:=0; buf:=''; keyptr := @table;
+	if not N33.checked then
+		if not volidate_text(keyptr) then
+			if messageBox(	handle,
+											PChar('Ключ несовместим с текстовым режимом! Продолжить?'),
+											PChar('Внимай!'),
+											MB_ICONWARNING+
+											MB_YESNO
+											) = 7 then EXIT;
+  case pagesdlg.RadioGroup.ItemIndex of //New line format
+		0:NeL:=#$0D+#$0A;          //CR+LF
+    1:NeL:=#$0D;               //CR
+    2:NeL:=#$0A;               //LF
+		3:NeL:='';
+  end;
+  while I < Richedit1.Lines.Count do begin
+		buf := buf + Richedit1.Lines[I];
+    if I < Richedit1.Lines.Count-1 then
+			buf := buf + NeL;   //new line
+		I := I + 1
+	end;
+	richedit1.Lines.Clear;
+	pointer := @buf;
+	file_encode(pointer, keyptr);
+	if N33.checked then begin
+		for I := 0 to 255 do
+			table[i] := i;
+		richedit1.Lines.Append(encode( 	pointer^,
+																		keyptr,
+																		strtoint(pagesdlg.Edit1.text),
+																		pagesdlg.edit2.text
+																	))
+	end else
+		richedit1.Lines.Append(pointer^);
+
+	if freq_analyze then
+		frequence := Frequency_analysis(pointer);            //frequency analyze
+end;
+if freq_analyze then
+	form39.draw_graph(frequence);
+end;
+
+procedure TForm38.N15Click(Sender: TObject);
+var
+		i						:	integer;
+		buf1				:	AnsiString;
+		buf2				:	AnsiString;
+		Nel					:	AnsiString;
+		//tla				:	boolean;
+		t0					: cardinal;
+		pointer			: PAnsiString;
+		keyptr			: Pkey;
+		freq_analyze:	boolean;
+begin
+freq_analyze := pagesdlg.checkbox1.checked;
+Form39.maskcollector;
+keyptr := @table;
+		if TransposCnt(keyPTR) = 0 then begin
+			case passPrompt.ShowModalP(0) of
+				1:;
+			else EXIT;
+			end;
+		end;
+  	if not pagesdlg.CheckBox5.checked then
+		if length(volidate(keyptr)) <> 0 then
+    if messageBox(
+                  handle,
+                  PChar('Ключ повреждён! Продолжить?'),
+                  PChar('Внимай!'),
+                  MB_ICONWARNING+
+                  MB_YESNO
+									) = 7 then EXIT;
+if binary_mode then begin
+	if length(binary_data) >= Thresold then begin
+			Threads.run('decode');
+			EXIT;
+	end else begin
+		pointer := @binary_data;  //get data addr
+		t0		  := gettickcount;
+		file_decode(pointer,keyptr);  //decode data on pointer
+		form39.label39.Caption:='Encode/Decode Time: '+inttostr(gettickcount-t0)+'ms';
+		if freq_analyze then
+			frequence := Frequency_analysis(pointer);
+		trackbar.Position:=0;
+		trackbar.Perform(WM_KEYDOWN,VK_UP,0);
+		trackbar.Perform(WM_KEYUP,VK_UP,0); //perform trackbar.onChange
+	end;
+end
+else begin
+	i:=0; buf1:=''; buf2:=''; keyPTR := @table;
+	if not N33.checked then
+		if not volidate_text(keyptr) then
+			if messageBox(	handle,
+											PChar('Ключ несовместим с текстовым режимом! Продолжить?'),
+											PChar('Внимай!'),
+											MB_ICONWARNING+
+											MB_YESNO
+											) = 7 then EXIT;
+  case pagesdlg.RadioGroup.ItemIndex of //New line format
+		0:NeL:=#$0D+#$0A;
+    1:NeL:=#$0D;
+    2:NeL:=#$0A;
+    3:NeL:='';
+  end;
+	while I < Richedit1.Lines.Count do begin
+		buf1 := buf1 + Richedit1.Lines[I];
+		if I < Richedit1.Lines.Count - 1 then
+			buf1 := buf1+NeL;   //new line
+		I := I + 1
+	end;
+form38.richedit1.Lines.clear;
+if N33.checked then begin
+i:=0;
+buf1 := decode(garbage_collector(buf1),keyPtr);
+for I := 1 to length(buf1) do
+	if buf1[i] = #0 then
+		buf1[i] := #$3f;
+pointer := @buf1;
+end else begin
+pointer := @buf1;
+file_decode(pointer,keyptr);
+end;
+if freq_analyze then
+	frequence := Frequency_analysis(pointer);
+richedit1.lines.Append(pointer^);
+{for i:=0 to length(buf1)+1 do begin
+  if (buf1[i]=#$0D) and (buf1[i+1]=#$0A) and (NeL=0) then begin
+    richedit1.Lines.Append(buf2);
+    buf2:=''; tla:=true;
+    I:=I+2;
+  end;
+  if (buf1[i]=#$0D) and (buf1[i+1]<>#$0A) and (NeL=1) then begin
+    richedit1.Lines.Append(buf2);
+    buf2:=''; tla:=true;
+    I:=I+1;
+  end;
+  if (buf1[i]=#$0A) and (buf1[i+1]<>#$0D) and (NeL=2) then begin
+    richedit1.Lines.Append(buf2);
+    buf2:=''; tla:=true;
+    I:=I+1;
+  end;
+  if buf1[i]<>#$0 and (buf1[i]<>#$0D) and (buf1[i]<>#$0A) then  //#$0 = end of data
+    buf2:=buf2+buf1[i];
+end;
+richedit1.Lines[0]:=buf2;}
+end;
+if freq_analyze then
+	form39.draw_graph(frequence);
+end;
+{$ENDREGION}
+
+		{#region Encode2/Decode2}{$REGION}
+procedure TForm38.Oneperbyte1Click(Sender: TObject);
+var
+		i						:	integer;
+		t0					:	cardinal;
+		Nel					:	AnsiString;
+		pointer			:	PAnsiString;
+		turbo_mode	:	boolean;
+		freq_analyze:	boolean;
+		keyptr2			: Pkey2;
+		keyptr			:	Pkey;
+begin
+if length(table2) = 0 then begin
+	passPrompt.ShowModalP(1);
+	EXIT;
+end;
+turbo_mode 	 := pagesdlg.checkbox4.checked;
+freq_analyze := pagesdlg.checkbox1.checked;
+keyptr2 		 := @table2;
+t0					 :=	gettickcount;
+if not pagesdlg.checkbox5.checked then
+		if not volidate(keyPtr2) then
+		if turbo_mode then begin
+			 messageBox(
+									handle,
+									PChar('Ключ повреждён! Продолжить?'+#$0D+#$0A+
+												 'Если да, отключите "Турбо - режим."'),
+									PChar('Внимай!'),
+									MB_ICONWARNING+
+									MB_OK
+									);
+			 EXIT;
+		end else
+		if messageBox(
+									handle,
+									PChar('Ключ повреждён! Продолжить?'),
+									PChar('Внимай!'),
+									MB_ICONWARNING+
+									MB_YESNO
+									) = 7 then EXIT;
+
+if binary_mode then begin
+				if length(binary_data) >= Thresold then begin
+					Threads.run('encode_2dimm');
+					EXIT;
+				end else begin
+				pointer := @binary_data;    //get data addr
+				if turbo_mode then begin
+					invert(keyptr2);
+					file_decode_2dimm(pointer,keyptr2);
+					invert(keyptr2);             //invert again to make original key;
+				end else
+					file_encode_2dimm(pointer,keyptr2);
+				form39.label39.Caption := 'Encode/Decode Time: '+inttostr(gettickcount-t0)+'ms';
+				if freq_analyze then
+					frequence := Frequency_analysis(pointer);
+				trackbar.Position:=0; //perform trackbar.onChange
+				trackbar.Perform(WM_KEYDOWN,VK_UP,0);
+				trackbar.Perform(WM_KEYUP,VK_UP,0);
+
+	end;
+end else begin
+	if not N33.checked then
+		if not volidate_text(keyptr2) then
+			if messageBox(	handle,
+											PChar('Ключ несовместим с текстовым режимом! Продолжить?'),
+											PChar('Внимай!'),
+											MB_ICONWARNING+
+											MB_YESNO
+											) = 7 then EXIT;
+ binary_data := '';
+	case pagesdlg.RadioGroup.ItemIndex of //New line format
+		0:	NeL:=#$0D+#$0A;
+		1:	NeL:=#$0D;
+		2:	NeL:=#$0A;
+		3:	NeL:='';
+	end;
+	for I:=0 to Richedit1.Lines.Count - 1 do begin
+		binary_data := binary_data+Richedit1.Lines[I];
+		if I < Richedit1.Lines.Count - 1 then
+			binary_data := binary_data+NeL;   //new line
+	end;
+	pointer := @binary_data;
+	richedit1.lines.clear;
+	file_encode_2dimm(pointer,keyptr2);
+	if freq_analyze then
+		frequence := Frequency_analysis(pointer);
+	if N33.checked then begin
+		for I := 0 to 255 do
+			table[i] := i;
+		keyPTR := @table;
+		richedit1.Lines.Append(encode( 	pointer^,
+																keyptr,
+																strtoint(pagesdlg.Edit1.text),
+																pagesdlg.edit2.text
+															));
+	end else
+		richedit1.lines.Append(pointer^);
+end;
+if freq_analyze then
+	form39.draw_graph(frequence);
+end;
+
+procedure TForm38.Oneperbyte2Click(Sender: TObject);
+var
+		i						:	integer;
+		t0					: cardinal;
+		Nel					:	AnsiString;
+		pointer			: PAnsiString;
+		keyptr2			: Pkey2;
+		keyptr			:	Pkey;
+		freq_analyze:	boolean;
+begin
+keyptr2 := @table2;
+if length(table2) < 1 then begin
+	passPrompt.ShowModalP(2);
+	EXIT;
+end;
+freq_analyze :=  pagesdlg.checkbox1.checked;
+t0					 :=	 gettickcount;
+if not pagesdlg.checkbox5.checked then
+	if not volidate(keyptr2) then
+		if messageBox(
+									handle,
+									PChar('Ключ повреждён! Продолжить?'),
+									PChar('Внимай!'),
+									MB_ICONWARNING+
+									MB_YESNO
+									) = 7 then EXIT;
+if binary_mode then begin
+				if length(binary_data) >= Thresold then begin
+					Threads.Run('decode_2dimm');
+					EXIT;
+				end else begin
+					pointer := @binary_data;    //get data addr
+					file_decode_2dimm(pointer,keyptr2);
+					form39.label39.Caption := 'Encode/Decode Time: '+inttostr(gettickcount-t0)+'ms';
+					if freq_analyze then
+						frequence := Frequency_analysis(pointer);
+					trackbar.position:=0; //perform trackbar.onChange
+					trackbar.Perform(WM_KEYDOWN,VK_UP,0);
+					trackbar.Perform(WM_KEYUP,VK_UP,0); //perform trackbar.onChange
+				end;
+end else begin
+ binary_data := '';
+	case pagesdlg.RadioGroup.ItemIndex of //New line format
+		0:	NeL:=#$0D+#$0A;
+		1:	NeL:=#$0D;
+		2:	NeL:=#$0A;
+		3:	NeL:='';
+	end;
+	for I:=0 to Richedit1.Lines.Count - 1 do begin
+		binary_data := binary_data+Richedit1.Lines[I];
+		if I < Richedit1.Lines.Count-1 then
+			binary_data := binary_data+NeL;   //new line
+	end;
+	if N33.checked then begin
+		for I := 0 to 255 do
+			table[i] := i;
+		keyPTR := @table;
+		binary_data := decode(garbage_collector(binary_data),keyPtr);
+	end;
+
+	file_decode_2dimm(@binary_data,keyptr2);
+	if freq_analyze then
+		frequence := Frequency_analysis(@binary_data);
+	richedit1.lines.clear;
+	richedit1.lines[0] := binary_data;
+end;
+if freq_analyze then
+	form39.draw_graph(frequence);
+end;
+{$ENDREGION}
+
+		{#region Frequency analysis}{$REGION}
+procedure TForm38.N20Click(Sender: TObject);
+var i	:	integer;
+		buf,nel		:	AnsiString;
+begin
+buf := '';
+form39.Image1.Enabled := true;
+if binary_mode then begin
+	if length(binary_data) >= Thresold then
+	begin
+		Threads.run('Frequency_analysis');
+		EXIT;
+	end else begin
+		frequence := Frequency_analysis(@binary_data);
+		form39.draw_graph(frequence);
+	end;
+end else begin
+		case pagesdlg.RadioGroup.ItemIndex of //New line format
+		0:NeL:=#$0D+#$0A;
+		1:NeL:=#$0D;
+		2:NeL:=#$0A;
+		3:NeL:='';
+	end;
+	for I:=0 to Richedit1.Lines.Count do begin
+		buf:=buf+Richedit1.Lines[I];
+		if I < Richedit1.Lines.Count-1 then
+			buf:=buf+NeL;   //new line
+	end;
+	frequence := Frequency_analysis(@buf);
+	form39.draw_graph(frequence);
+end;
+
+end;
+{$ENDREGION}
+{$ENDREGION}
+
+	{#region Menu.Settings}{$REGION}
+procedure TForm38.N17Click(Sender: TObject);
+begin
+pagesdlg.Show;
+end;
+{$ENDREGION}
+
+	{#region Menu.Help}{$REGION}
+procedure TForm38.N10Click(Sender: TObject);//help
+begin
+shellExecute(Handle, 'open',
+  'sqroot.chm', nil, nil, SW_SHOWNORMAL);
+end;
+
+procedure TForm38.N12Click(Sender: TObject);
+begin
+AboutForm.ShowModal;
+{messagebox(handle,PChar(
+'Квадрат Полибия'+#$0D+#$0A+
+'Version 2'+#$0D+#$0A+
+'©'+#$46+'. '+#$42+#$65+#$72+#$6e+#$6b+#$61+#$73+#$74+#$65+#$6c+
+' '+#$6e+#$69+#$70+#$61+'~('+#$3d+#$5e+#$5f+#$5e+#$3d+#$29+', 2014'+#$0D+#$0A+
+'e-mail: mails@namba.kg'),PChar('блаблабла'),(MB_OK));}
+end;
+procedure TForm38.N13Click(Sender: TObject);
+begin
+
+end;
+
+{$ENDREGION}
+
+{$ENDREGION}
+
+end.

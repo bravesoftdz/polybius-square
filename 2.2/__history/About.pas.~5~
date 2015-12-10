@@ -1,0 +1,43 @@
+unit About;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+	Dialogs, ComCtrls, GIFImage, ExtCtrls;
+
+type
+  TAboutForm = class(TForm)
+    Image1: TImage;
+    procedure FormDestroy(Sender: TObject);
+		procedure FormCreate(Sender: TObject);
+  private
+		
+	public
+		gif : TGIFImage;
+	end;
+var
+	AboutForm: TAboutForm;
+	cnt,i : integer;
+implementation
+
+
+
+{$R *.dfm}
+
+procedure TAboutForm.FormCreate(Sender: TObject);
+begin
+	gif := TGIFImage.Create;
+	gif.DrawOptions := [goAnimate,goLoop,goAsync,goDirectDraw];
+	gif.AnimationSpeed := 1000;
+	gif.LoadFromFile(ExtractFilePath(application.ExeName)+'logo.gif');
+	Image1.Picture.Assign(gif);
+end;
+
+procedure TAboutForm.FormDestroy(Sender: TObject);
+begin
+gif.stopDraw;
+gif.free;
+end;
+
+end.

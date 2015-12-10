@@ -1,0 +1,64 @@
+object AboutForm: TAboutForm
+  Left = 0
+  Top = 0
+  BorderIcons = []
+  BorderStyle = bsToolWindow
+  Caption = 'AboutForm'
+  ClientHeight = 363
+  ClientWidth = 512
+  Color = clSkyBlue
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  OnCreate = FormCreate
+  OnShow = FormShow
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Image1: TImage
+    Left = 0
+    Top = 0
+    Width = 512
+    Height = 288
+  end
+  object Memo1: TMemo
+    Left = 104
+    Top = 294
+    Width = 185
+    Height = 66
+    Alignment = taCenter
+    BevelInner = bvNone
+    BevelOuter = bvNone
+    BorderStyle = bsNone
+    Color = clSkyBlue
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clBlack
+    Font.Height = -11
+    Font.Name = 'Comic Sans MS'
+    Font.Style = [fsBold]
+    HideSelection = False
+    Lines.Strings = (
+      'Polibius Square v2.3'
+      'Created by F. Bernkastel'
+      'mails@namba.kg'
+      'nipa~ ^_^')
+    ParentFont = False
+    ReadOnly = True
+    TabOrder = 0
+    WordWrap = False
+    OnMouseLeave = Memo1MouseLeave
+    OnMouseMove = Memo1MouseMove
+  end
+  object Button1: TButton
+    Left = 416
+    Top = 335
+    Width = 75
+    Height = 25
+    Caption = 'Ok'
+    Default = True
+    TabOrder = 1
+    OnClick = Button1Click
+  end
+end

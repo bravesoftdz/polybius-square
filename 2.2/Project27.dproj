@@ -1,0 +1,173 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{6EAC4F6C-DAD1-416C-974A-71C7403F230A}</ProjectGuid>
+        <ProjectVersion>14.3</ProjectVersion>
+        <MainSource>Project27.dpr</MainSource>
+        <Config Condition="'$(Config)'==''">Debug</Config>
+        <DCC_DCCCompiler>DCC32</DCC_DCCCompiler>
+        <FrameworkType>VCL</FrameworkType>
+        <Base>True</Base>
+        <Platform Condition="'$(Platform)'==''">Win32</Platform>
+        <TargetedPlatforms>1</TargetedPlatforms>
+        <AppType>Application</AppType>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Base)'=='true') or '$(Base_Win32)'!=''">
+        <Base_Win32>true</Base_Win32>
+        <CfgParent>Base</CfgParent>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="('$(Platform)'=='Win64' and '$(Base)'=='true') or '$(Base_Win64)'!=''">
+        <Base_Win64>true</Base_Win64>
+        <CfgParent>Base</CfgParent>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='Release' or '$(Cfg_1)'!=''">
+        <Cfg_1>true</Cfg_1>
+        <CfgParent>Base</CfgParent>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Config)'=='Debug' or '$(Cfg_2)'!=''">
+        <Cfg_2>true</Cfg_2>
+        <CfgParent>Base</CfgParent>
+        <Base>true</Base>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Base)'!=''">
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_AutoGenVersion>true</VerInfo_AutoGenVersion>
+        <VerInfo_Locale>1049</VerInfo_Locale>
+        <VerInfo_Keys>CompanyName=Tails Releases;FileDescription=Square of Polibii;FileVersion=1.0.0.0;InternalName=Square of Polibii;LegalCopyright=©Tails Releases, 2010-2011;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <DCC_Namespace>Vcl;Vcl.Imaging;Vcl.Touch;Vcl.Samples;Vcl.Shell;System;Xml;Data;Datasnap;Web;Soap;Winapi;FMX.Pickers;$(DCC_Namespace)</DCC_Namespace>
+        <DCC_OutputDRCFile>true</DCC_OutputDRCFile>
+        <DCC_DependencyCheckOutputName>Project27.exe</DCC_DependencyCheckOutputName>
+        <DCC_UsePackage>vclx;vcl;dbrtl;Rave76VCL;bdertl;rtl;vclactnband;xmlrtl;vcldb;vcldbx;dsnap;dsnapcon;TeeUI;TeeDB;Tee;adortl;vclib;ibxpress;IndyCore;IndySystem;IndyProtocols;inet;intrawebdb_100_120;Intraweb_100_120;VclSmp;vclie;vclribbon;$(DCC_UsePackage)</DCC_UsePackage>
+        <DCC_ImageBase>00400000</DCC_ImageBase>
+        <DCC_Platform>x86</DCC_Platform>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Base_Win32)'!=''">
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
+        <DCC_Namespace>System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
+        <VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
+        <Icon_MainIcon>Project27_Icon.ico</Icon_MainIcon>
+        <VerInfo_Locale>1033</VerInfo_Locale>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Base_Win64)'!=''">
+        <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
+        <Icon_MainIcon>Project27_Icon.ico</Icon_MainIcon>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_1)'!=''">
+        <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
+        <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
+        <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
+        <DCC_DebugInformation>false</DCC_DebugInformation>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Cfg_2)'!=''">
+        <DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
+    </PropertyGroup>
+    <ItemGroup>
+        <DelphiCompile Include="$(MainSource)">
+            <MainSource>MainSource</MainSource>
+        </DelphiCompile>
+        <DCCReference Include="Unit38.pas">
+            <Form>Form38</Form>
+        </DCCReference>
+        <DCCReference Include="Unit39.pas">
+            <Form>Form39</Form>
+        </DCCReference>
+        <DCCReference Include="TABPGDLG.pas">
+            <Form>PagesDlg</Form>
+        </DCCReference>
+        <DCCReference Include="Unit48.pas">
+            <Form>Form48</Form>
+        </DCCReference>
+        <DCCReference Include="Unit60.pas"/>
+        <None Include="ModelSupport_Project27\default.txvpck"/>
+        <None Include="ModelSupport_Project27\Project18\default.txvpck"/>
+        <None Include="ModelSupport_Project27\default.txaPackage"/>
+        <None Include="ModelSupport_Project27\Unit58\default.txaPackage"/>
+        <None Include="ModelSupport_Project27\Project27\default.txaPackage"/>
+        <None Include="ModelSupport_Project27\Project27\default.txvpck"/>
+        <None Include="Project27.todo"/>
+        <BuildConfiguration Include="Debug">
+            <Key>Cfg_2</Key>
+            <CfgParent>Base</CfgParent>
+        </BuildConfiguration>
+        <BuildConfiguration Include="Base">
+            <Key>Base</Key>
+        </BuildConfiguration>
+        <BuildConfiguration Include="Release">
+            <Key>Cfg_1</Key>
+            <CfgParent>Base</CfgParent>
+        </BuildConfiguration>
+    </ItemGroup>
+    <Import Project="$(BDS)\Bin\CodeGear.Delphi.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Delphi.Targets')"/>
+    <ProjectExtensions>
+        <Borland.Personality>Delphi.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Delphi.Personality>
+                <Source>
+                    <Source Name="MainSource">Project27.dpr</Source>
+                </Source>
+                <Parameters>
+                    <Parameters Name="UseLauncher">False</Parameters>
+                    <Parameters Name="LoadAllSymbols">True</Parameters>
+                    <Parameters Name="LoadUnspecifiedSymbols">False</Parameters>
+                </Parameters>
+                <VersionInfo>
+                    <VersionInfo Name="IncludeVerInfo">True</VersionInfo>
+                    <VersionInfo Name="AutoIncBuild">True</VersionInfo>
+                    <VersionInfo Name="MajorVer">1</VersionInfo>
+                    <VersionInfo Name="MinorVer">0</VersionInfo>
+                    <VersionInfo Name="Release">0</VersionInfo>
+                    <VersionInfo Name="Build">0</VersionInfo>
+                    <VersionInfo Name="Debug">False</VersionInfo>
+                    <VersionInfo Name="PreRelease">False</VersionInfo>
+                    <VersionInfo Name="Special">False</VersionInfo>
+                    <VersionInfo Name="Private">False</VersionInfo>
+                    <VersionInfo Name="DLL">False</VersionInfo>
+                    <VersionInfo Name="Locale">1049</VersionInfo>
+                    <VersionInfo Name="CodePage">1251</VersionInfo>
+                </VersionInfo>
+                <VersionInfoKeys>
+                    <VersionInfoKeys Name="CompanyName">Tails Releases</VersionInfoKeys>
+                    <VersionInfoKeys Name="FileDescription">Square of Polibii</VersionInfoKeys>
+                    <VersionInfoKeys Name="FileVersion">1.0.0.0</VersionInfoKeys>
+                    <VersionInfoKeys Name="InternalName">Square of Polibii</VersionInfoKeys>
+                    <VersionInfoKeys Name="LegalCopyright">©Tails Releases, 2010-2011</VersionInfoKeys>
+                    <VersionInfoKeys Name="LegalTrademarks"/>
+                    <VersionInfoKeys Name="OriginalFilename"/>
+                    <VersionInfoKeys Name="ProductName"/>
+                    <VersionInfoKeys Name="ProductVersion">1.0.0.0</VersionInfoKeys>
+                    <VersionInfoKeys Name="Comments"/>
+                </VersionInfoKeys>
+                <Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\bcbofficexp120.bpl">CodeGear C++Builder Office XP Servers Package</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dcloffice2k120.bpl">Microsoft Office 2000 Sample Automation Server Wrapper Components</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\dclofficexp120.bpl">Microsoft Office XP Sample Automation Server Wrapper Components</Excluded_Packages>
+                </Excluded_Packages>
+                <Language>
+                    <Language Name="ProjectLang">$00000419</Language>
+                    <Language Name="ActiveLang">ENG</Language>
+                </Language>
+                <RDP_Source_Files>
+                    <RDP_Source_Files Name="Item0">Unit38.dfm</RDP_Source_Files>
+                    <RDP_Source_Files Name="Item1">Unit39.dfm</RDP_Source_Files>
+                    <RDP_Source_Files Name="Item2">TABPGDLG.dfm</RDP_Source_Files>
+                    <RDP_Source_Files Name="Item3">Unit48.dfm</RDP_Source_Files>
+                    <RDP_Source_Files Name="Item4">Project18.drc</RDP_Source_Files>
+                </RDP_Source_Files>
+            </Delphi.Personality>
+            <ModelSupport>True</ModelSupport>
+            <Platforms>
+                <Platform value="Win32">True</Platform>
+                <Platform value="Win64">False</Platform>
+            </Platforms>
+        </BorlandProject>
+        <ProjectFileVersion>12</ProjectFileVersion>
+    </ProjectExtensions>
+    <Import Project="$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj" Condition="Exists('$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj')"/>
+</Project>

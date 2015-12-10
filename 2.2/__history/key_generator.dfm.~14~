@@ -1,0 +1,123 @@
+object generator_settings: Tgenerator_settings
+  Left = 0
+  Top = 0
+  BorderStyle = bsToolWindow
+  Caption = #1043#1077#1085#1077#1088#1080#1088#1086#1074#1072#1090#1100
+  ClientHeight = 159
+  ClientWidth = 272
+  Color = clWhite
+  DefaultMonitor = dmMainForm
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  FormStyle = fsStayOnTop
+  OldCreateOrder = False
+  PopupMode = pmExplicit
+  PopupParent = Form38.Owner
+  Position = poOwnerFormCenter
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Label1: TLabel
+    Left = 147
+    Top = 11
+    Width = 28
+    Height = 13
+    Caption = 'Seed:'
+  end
+  object Label2: TLabel
+    Left = 147
+    Top = 48
+    Width = 23
+    Height = 13
+    Caption = 'Size:'
+    Enabled = False
+  end
+  object Label3: TLabel
+    Left = 163
+    Top = 83
+    Width = 35
+    Height = 13
+    Caption = #1057#1076#1074#1080#1075':'
+    Visible = False
+  end
+  object Edit1: TEdit
+    Left = 184
+    Top = 8
+    Width = 65
+    Height = 21
+    TabOrder = 0
+    Text = '1'
+  end
+  object Edit2: TEdit
+    Left = 184
+    Top = 45
+    Width = 65
+    Height = 21
+    Enabled = False
+    TabOrder = 1
+    Text = '1'
+  end
+  object RadioGroup1: TRadioGroup
+    Left = 8
+    Top = 1
+    Width = 105
+    Height = 60
+    ItemIndex = 0
+    Items.Strings = (
+      #1089#1090#1072#1085#1076#1072#1088#1090#1085#1099#1081
+      '2-'#1084#1077#1088#1085#1099#1081)
+    TabOrder = 2
+    OnClick = RadioGroup1Click
+  end
+  object Button1: TButton
+    Left = 100
+    Top = 126
+    Width = 75
+    Height = 25
+    Caption = 'ok'
+    Default = True
+    TabOrder = 3
+    OnClick = Button1Click
+  end
+  object Button2: TButton
+    Left = 189
+    Top = 126
+    Width = 75
+    Height = 25
+    Cancel = True
+    Caption = #1086#1090#1084#1077#1085#1072
+    TabOrder = 4
+    OnClick = Button2Click
+  end
+  object ComboBox1: TComboBox
+    Left = 8
+    Top = 80
+    Width = 145
+    Height = 21
+    ItemHeight = 13
+    TabOrder = 5
+    Text = #1089#1083#1091#1095#1072#1081#1085#1099#1081'...'
+    OnChange = ComboBox1Change
+    Items.Strings = (
+      #1089#1083#1091#1095#1072#1081#1085#1099#1081'...'
+      'ROT13'
+      'ROT47'
+      #1040#1090#1073#1072#1096
+      #1062#1077#1079#1072#1088#1100
+      #1056#1077#1074#1077#1088#1089' ('#1075#1083#1086#1073#1072#1083#1100#1085#1099#1081')')
+  end
+  object MaskEdit1: TMaskEdit
+    Left = 200
+    Top = 80
+    Width = 33
+    Height = 21
+    EditMask = '#99;0; '
+    MaxLength = 3
+    TabOrder = 6
+    Text = '+1'
+    Visible = False
+    OnExit = MaskEdit1Exit
+  end
+end

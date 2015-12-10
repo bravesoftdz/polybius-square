@@ -1,0 +1,25 @@
+unit About;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, ComCtrls;
+
+type
+  TAboutForm = class(TForm)
+    Animate1: TAnimate;
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  AboutForm: TAboutForm;
+
+implementation
+
+{$R *.dfm}
+
+end.

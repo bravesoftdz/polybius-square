@@ -1,0 +1,98 @@
+unit About;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+	Dialogs, ComCtrls, GIFImage, ExtCtrls, StdCtrls, Buttons;
+
+type
+  TAboutForm = class(TForm)
+    Image1: TImage;
+    Button1: TButton;
+    Button2: TButton;
+    Button3: TButton;
+    Button4: TButton;
+    Button5: TButton;
+    procedure Button5Click(Sender: TObject);
+    procedure Button4Click(Sender: TObject);
+    procedure Button3Click(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure Image1Click(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormDestroy(Sender: TObject);
+		procedure FormCreate(Sender: TObject);
+	private
+		
+	public
+		gif : TGIFImage;
+	end;
+var
+	AboutForm: TAboutForm;
+implementation
+
+uses Unit38;
+
+
+
+{$R *.dfm}
+
+procedure TAboutForm.Button3Click(Sender: TObject);
+begin
+	gif := TGIFImage.Create;
+	gif.DrawOptions := [goAnimate,goLoop,goAsync,goDirectDraw];
+	gif.AnimationSpeed := 1000;
+	gif.LoadFromFile('C:\Users\Администратор\Desktop\TEMP\skeleton.gif');
+	gif.PaintPause;
+	Image1.Picture.Assign(gif);
+end;
+
+procedure TAboutForm.Button4Click(Sender: TObject);
+begin
+gif.PaintStop;
+end;
+
+procedure TAboutForm.Button5Click(Sender: TObject);
+begin
+gif.StopDraw;
+end;
+
+procedure TAboutForm.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+gif.PaintPause;
+end;
+
+procedure TAboutForm.FormCreate(Sender: TObject);
+var Stream: TResourceStream;
+begin
+ {	gif := TGIFImage.Create;
+	gif.DrawOptions := [goAnimate,goLoop,goAsync,goDirectDraw];
+	gif.AnimationSpeed := 1000;
+	Stream := TResourceStream.Create(hInstance, 'logo', 'GIF');
+	try
+		gif.LoadFromStream(stream);
+	finally
+		stream.Free;
+	end;
+	Image1.Picture.Assign(gif); }
+end;
+
+procedure TAboutForm.FormDestroy(Sender: TObject);
+begin
+gif.StopDraw;
+gif.PaintStop;
+gif.free;
+image1.Picture.Free;
+end;
+
+procedure TAboutForm.FormShow(Sender: TObject);
+begin
+//gif.Paintresume;
+end;
+
+procedure TAboutForm.Image1Click(Sender: TObject);
+begin
+Close;
+end;
+
+end.

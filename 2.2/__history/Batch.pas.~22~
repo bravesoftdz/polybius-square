@@ -1,0 +1,160 @@
+unit Batch;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls;
+
+type
+	TBatchForm = class(TForm)
+    Button1: TButton;
+    Label1: TLabel;
+    Button2: TButton;
+    procedure Button2Click(Sender: TObject);
+		procedure Button1Click(Sender: TObject);
+		procedure DisableControls;
+		procedure EnableControls;
+  private
+    { Private declarations }
+  public
+		TODO: byte;
+  end;
+
+	TBatchProcessor = class(TThread)
+		procedure UpdateVCL;
+  private
+		id: byte;
+	protected
+		procedure Execute; override;
+	end;
+	TBatchVCLUpdater = class(TThread)
+		procedure UpdateVCL;
+  private
+
+	protected
+		procedure Execute; override;
+	end;
+var
+	BatchForm: TBatchForm;
+	BatchThread: TBatchProcessor;
+	BatchVCLUpdater: TBatchVCLUpdater;
+{ Important: Methods and properties of objects in visual components can only be
+  used in a method called using Synchronize, for example,
+
+      Synchronize(UpdateCaption);
+
+  and UpdateCaption could look like,
+
+		procedure MyThread.UpdateCaption;
+		begin
+			Form1.Caption := 'Updated in a thread';
+		end; }
+implementation
+
+uses Unit38, Unit39, TABPGDLG, encoder;
+
+{$R *.dfm}
+
+procedure TBatchProcessor.Execute;
+var
+freq_analyze: boolean;
+oldpr:byte;
+begin
+oldpr:=0; progress:=0;
+BatchVCLUpdater := TBatchVCLUpdater.Create(false);
+case BatchForm.TODO of
+	0: begin
+	freq_analyze := pagesdlg.CheckBox1.Checked;
+		if Binary_Mode then
+		begin
+			id:=0; Synchronize(UpdateVCL); 	//Почему я не могу передадь напрямую
+																			//параметры процедуре, вызываемой через Synchronize?
+			Form38.N14.Click;
+			if freq_analyze then
+			begin
+				id:=1; Synchronize(UpdateVCL);
+				id:=2; Synchronize(UpdateVCL);
+			end;
+		end;
+		id:=4; Synchronize(UpdateVCL);
+	end;
+	1: begin
+		freq_analyze := pagesdlg.CheckBox1.Checked;
+		if Binary_Mode then
+		begin
+			id:=0; Synchronize(UpdateVCL);
+			Form38.N15.Click;
+			if freq_analyze then
+			begin
+				id:=1; Synchronize(UpdateVCL);
+				id:=2; Synchronize(UpdateVCL);
+			end;
+		end;
+		id:=4; Synchronize(UpdateVCL);
+	end;
+end;
+BatchVCLUpdater.Terminate;
+end;
+
+procedure TBatchProcessor.UpdateVCL;
+begin
+case id of
+	0: pagesdlg.checkbox1.Checked:=false;
+	1: pagesdlg.checkbox1.Checked:=true;
+	2: form38.N20.Click;
+	3: batchform.Label1.Caption:=inttostr(progress);
+	4: BatchForm.EnableControls;
+end;
+end;
+
+procedure TBatchVCLUpdater.Execute;
+var switch: boolean;
+begin
+	switch := false;
+	while true do
+	begin
+		if terminated or BatchThread.Terminated then
+			Break;
+		Synchronize(UpdateVCL);
+		if switch then begin
+			progress := 0;
+			Synchronize(UpdateVCL);
+			Break;
+		end;
+		if progress = 255 then
+			switch := true;
+		sleep(50);
+	end;
+end;
+
+procedure TBatchVCLUpdater.UpdateVCL;
+begin
+	BatchForm.Label1.Caption := inttostr(progress);
+end;
+
+procedure TBatchForm.Button1Click(Sender: TObject);
+begin
+DisableControls;
+TODO:=0;
+BatchThread := TBatchProcessor.Create(False);
+end;
+
+procedure TBatchForm.Button2Click(Sender: TObject);
+begin
+DisableControls;
+TODO:=1;
+BatchThread := TBatchProcessor.Create(False);
+end;
+
+procedure TBatchForm.DisableControls;
+begin
+	Button1.Enabled:=false;
+	Button2.Enabled:=false;
+end;
+procedure TBatchForm.EnableControls;
+begin
+	Button1.Enabled:=true;
+	Button2.Enabled:=true;
+end;
+end.

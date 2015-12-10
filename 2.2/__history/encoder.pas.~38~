@@ -1,0 +1,1005 @@
+{********************SPEED TEST********************
+ ---------------------------------------------------
+* if ... else if ... cascade (+freq analyze +grouping)  218075.7   bytes/s
+* if ... else if ... cascade (+freq analyze)            436151.4   bytes/s
+* if ... else if ... cascade                            655206.875 bytes/s
+* new :byte modification                               3288097.78  bytes/s
+* new :byte modification secondGen (+freq analyze)     6070272     bytes/s
+* new :byte modification secondGen                     6201344     bytes/s
+* new :byte modification thirdGen                      7944499     bytes/s
+* new :byte modification thirdGen  (AnsiChar mod)      8077577.5   bytes/s
+* new :byte modification thirdGen  (decode)            8130165     bytes/s
+* file_encode_2dimm (2)                                5392056     bytes/s
+* file_encode_2dimm (16)                               5368875     bytes/s
+* file_encode_2dimm (1024)                             5269258     bytes/s
+* file_encode_2dimm (65536)                            5080717     bytes/s
+* freq analyze                                      >209715200     bytes/s
+
+  @2.61GHz
+---------------------------------------------------
+***************************************************}
+
+unit encoder;
+
+interface
+
+function encode(input:string;
+                grouping:integer;
+                separator:AnsiString;
+                freq_analyze:boolean):string;
+function decode(input:string):string;
+{unction encode2(input: string; fill_zero:boolean):string;}
+procedure file_encode(data:PAnsiString; freq_analyze:boolean; fill_zero:boolean);
+procedure file_decode(data:PAnsiString; freq_analyze:boolean; fill_zero:boolean);
+procedure file_encode_2dimm(data:PAnsiString; fill_zero:boolean);
+procedure file_decode_2dimm(data:PAnsiString; fill_zero:boolean);
+
+procedure inverse;
+implementation
+
+uses Unit38, TABPGDLG;
+
+procedure file_encode(data:PAnsiString; freq_analyze:boolean; fill_zero:boolean);
+var i,_length:integer;
+i2,ord_input:byte;
+switch:boolean;
+begin
+//result:='';
+_length:=length(data^);
+//for I := 0 to 255 do
+//setLength(result,_length);
+
+if freq_analyze then
+    for I := 1 to _length do begin
+        switch:=false;
+    ord_input:=ord(data^[i]);
+    for i2:=0 to 255 do
+      if ord_input=table[i2] then begin
+        data^[i]:=chr(i2);
+        freq(i2,false);
+        switch:=true;
+        break;
+    end;
+        if (not switch) and fill_zero then
+          data^[i]:=chr(0);
+  end else
+  for I := 1 to _length do begin
+  ord_input:=ord(data^[i]);
+      switch:=false;
+    for I2 := 0 to 255 do begin
+      if ord_input=table[i2] then begin
+        data^[i]:=chr(i2);  //MOV BYTE PTR DS:[ESI+EAX-1],BL
+        switch:=true;                        
+        break;
+      end;
+        if (not switch) and fill_zero then
+          data^[i]:=chr(0);
+    end;
+  end;
+end;
+
+procedure file_decode(data:PAnsiString; freq_analyze:boolean; fill_zero:boolean);
+var i,_length:integer;
+i2,ord_input:byte;
+chr_table:array[0..255] of AnsiChar;
+switch:boolean;
+begin
+//  result:='';
+  for I := 0 to 255 do
+  chr_table[i]:=chr(table[i]);  //table[0..255] of byte to char
+_length:=length(data^);  //get size of data
+// setLength(result,_length);
+
+  if freq_analyze then
+    for I := 1 to _length do begin
+      switch:=false;
+      ord_input:=ord(data^[i]);
+      for i2:=0 to 255 do
+        if ord_input=table[i2] then begin
+          data^[i]:=chr_table[ord_input];
+          freq(table[ord_input],false);
+          switch:=true;
+          break;
+        end;
+        if not switch then
+          data^[i]:=chr(0);
+    end else
+    for I := 1 to _length do begin
+      ord_input:=ord(data^[i]); //chr to bin
+      switch:=false;
+      for I2 := 0 to 255 do begin
+        if ord_input=table[i2] then begin
+          data^[i]:=chr_table[ord_input];
+          switch:=true;
+          break;
+        end;
+        if not switch then
+          data^[i]:=chr(0);
+      end;
+    end;
+end;
+
+procedure file_encode_2dimm(data: PAnsistring; fill_zero:boolean);
+var i,i2,i3,_length,key_length:integer;
+ord_input: byte;
+switch:boolean;
+begin
+    _Length:=length(data^); //get size of data
+    key_length:=length(table2);//get size of key
+    for i:=1 to _length do begin
+        ord_input:=ord(data^[i]);//chr to byte
+        i3:=i - ((i-1) div key_length) * key_length - 1;//sawtooth function
+                                                    //if size of data >
+                                                    //size of key --> loop key
+        switch:=false;
+      for i2:=0 to 255 do                       {normally, size of 2nd
+                                                dimension of key is fixed, and
+                                                equal 256 (2^8)}
+        if ord_input=table2[i3][i2] then begin
+         data^[i]:=chr(i2);
+         switch:=true;
+         break;
+     end;
+        if (not switch) and fill_zero then
+          data^[i]:=chr(0);                    //if symbol was'nt found in key
+                                                  //then symbol:=#0
+  end;
+end;
+
+procedure file_decode_2dimm(data: PAnsistring; fill_zero:boolean);
+var i,i3,_length,key_length:integer;
+ord_input: byte;
+begin
+    _Length:=length(data^); //get size of data
+    key_length:=length(table2);//get size of key
+    for i:=1 to _length do begin
+        ord_input:=ord(data^[i]);//chr to byte
+        i3:=i - ((i-1) div key_length) * key_length - 1;  //see 121 line
+        data^[i]:=chr(table2[i3][ord_input]);
+  end;
+end;
+
+{unction encode2(input: string; fill_zero:boolean):string;
+var i,i2,i3,_length,key_length:integer;
+ord_input: byte;
+switch:boolean;
+begin
+result:='';
+    _Length:=length(pointer^); //get size of data
+    key_length:=length(table2);//get size of key
+        for i:=1 to _length do begin
+          ord_input:=ord(pointer^[i]);//chr to byte
+          i3:=i - ((i-1) div key_length) * key_length - 1;
+        switch:=false;
+      for i2:=0 to 255 do
+        if ord_input=table2[i3][i2] then begin
+         result:=result+inttohex(i2);
+         switch:=true;
+         break;
+     end;
+        if (not switch) and fill_zero then
+           result:=result+inttohex(0);
+        end;
+end;  }
+
+procedure inverse;
+var temp:array [0..255] of byte;
+i,i2: byte;
+begin
+for I := 0 to 255 do
+  temp[table[i]]:=i;
+for I := 0 to 255 do
+  table[i]:=temp[i];
+end;
+
+function encode(input:string; grouping:integer; separator: String; freq_analyze:boolean):string;
+var i,z:integer;
+ord_input_i:longint;
+begin result:=''; z:=0;
+if freq_analyze then begin
+  for I := 1 to length(input) do begin
+    {for I2 := 0 to 255 do
+      if input[I]=table[I2  ] then begin
+        freq(InttoHex(I2,2)); result:=result+InttoHex(I2,2); break end;}
+ord_input_i:=ord(input[I]);
+if ord_input_i=table[0  ] then begin freq(0  ,false); result:=result+'00';end else
+if ord_input_i=table[1  ] then begin freq(1  ,false); result:=result+'01';end else
+if ord_input_i=table[2  ] then begin freq(2  ,false); result:=result+'02';end else
+if ord_input_i=table[3  ] then begin freq(3  ,false); result:=result+'03';end else
+if ord_input_i=table[4  ] then begin freq(4  ,false); result:=result+'04';end else
+if ord_input_i=table[5  ] then begin freq(5  ,false); result:=result+'05';end else
+if ord_input_i=table[6  ] then begin freq(6  ,false); result:=result+'06';end else
+if ord_input_i=table[7  ] then begin freq(7  ,false); result:=result+'07';end else
+if ord_input_i=table[8  ] then begin freq(8  ,false); result:=result+'08';end else
+if ord_input_i=table[9  ] then begin freq(9  ,false); result:=result+'09';end else
+if ord_input_i=table[10 ] then begin freq(10 ,false); result:=result+'0a';end else
+if ord_input_i=table[11 ] then begin freq(11 ,false); result:=result+'0b';end else
+if ord_input_i=table[12 ] then begin freq(12 ,false); result:=result+'0c';end else
+if ord_input_i=table[13 ] then begin freq(13 ,false); result:=result+'0d';end else
+if ord_input_i=table[14 ] then begin freq(14 ,false); result:=result+'0e';end else
+if ord_input_i=table[15 ] then begin freq(15 ,false); result:=result+'0f';end else
+if ord_input_i=table[16 ] then begin freq(16 ,false); result:=result+'10';end else
+if ord_input_i=table[17 ] then begin freq(17 ,false); result:=result+'11';end else
+if ord_input_i=table[18 ] then begin freq(18 ,false); result:=result+'12';end else
+if ord_input_i=table[19 ] then begin freq(19 ,false); result:=result+'13';end else
+if ord_input_i=table[20 ] then begin freq(20 ,false); result:=result+'14';end else
+if ord_input_i=table[21 ] then begin freq(21 ,false); result:=result+'15';end else
+if ord_input_i=table[22 ] then begin freq(22 ,false); result:=result+'16';end else
+if ord_input_i=table[23 ] then begin freq(23 ,false); result:=result+'17';end else
+if ord_input_i=table[24 ] then begin freq(24 ,false); result:=result+'18';end else
+if ord_input_i=table[25 ] then begin freq(25 ,false); result:=result+'19';end else
+if ord_input_i=table[26 ] then begin freq(26 ,false); result:=result+'1a';end else
+if ord_input_i=table[27 ] then begin freq(27 ,false); result:=result+'1b';end else
+if ord_input_i=table[28 ] then begin freq(28 ,false); result:=result+'1c';end else
+if ord_input_i=table[29 ] then begin freq(29 ,false); result:=result+'1d';end else
+if ord_input_i=table[30 ] then begin freq(30 ,false); result:=result+'1e';end else
+if ord_input_i=table[31 ] then begin freq(31 ,false); result:=result+'1f';end else
+if ord_input_i=table[32 ] then begin freq(32 ,false); result:=result+'20';end else
+if ord_input_i=table[33 ] then begin freq(33 ,false); result:=result+'21';end else
+if ord_input_i=table[34 ] then begin freq(34 ,false); result:=result+'22';end else
+if ord_input_i=table[35 ] then begin freq(35 ,false); result:=result+'23';end else
+if ord_input_i=table[36 ] then begin freq(36 ,false); result:=result+'24';end else
+if ord_input_i=table[37 ] then begin freq(37 ,false); result:=result+'25';end else
+if ord_input_i=table[38 ] then begin freq(38 ,false); result:=result+'26';end else
+if ord_input_i=table[39 ] then begin freq(39 ,false); result:=result+'27';end else
+if ord_input_i=table[40 ] then begin freq(40 ,false); result:=result+'28';end else
+if ord_input_i=table[41 ] then begin freq(41 ,false); result:=result+'29';end else
+if ord_input_i=table[42 ] then begin freq(42 ,false); result:=result+'2a';end else
+if ord_input_i=table[43 ] then begin freq(43 ,false); result:=result+'2b';end else
+if ord_input_i=table[44 ] then begin freq(44 ,false); result:=result+'2c';end else
+if ord_input_i=table[45 ] then begin freq(45 ,false); result:=result+'2d';end else
+if ord_input_i=table[46 ] then begin freq(46 ,false); result:=result+'2e';end else
+if ord_input_i=table[47 ] then begin freq(47 ,false); result:=result+'2f';end else
+if ord_input_i=table[48 ] then begin freq(48 ,false); result:=result+'30';end else
+if ord_input_i=table[49 ] then begin freq(49 ,false); result:=result+'31';end else
+if ord_input_i=table[50 ] then begin freq(50 ,false); result:=result+'32';end else
+if ord_input_i=table[51 ] then begin freq(51 ,false); result:=result+'33';end else
+if ord_input_i=table[52 ] then begin freq(52 ,false); result:=result+'34';end else
+if ord_input_i=table[53 ] then begin freq(53 ,false); result:=result+'35';end else
+if ord_input_i=table[54 ] then begin freq(54 ,false); result:=result+'36';end else
+if ord_input_i=table[55 ] then begin freq(55 ,false); result:=result+'37';end else
+if ord_input_i=table[56 ] then begin freq(56 ,false); result:=result+'38';end else
+if ord_input_i=table[57 ] then begin freq(57 ,false); result:=result+'39';end else
+if ord_input_i=table[58 ] then begin freq(58 ,false); result:=result+'3a';end else
+if ord_input_i=table[59 ] then begin freq(59 ,false); result:=result+'3b';end else
+if ord_input_i=table[60 ] then begin freq(60 ,false); result:=result+'3c';end else
+if ord_input_i=table[61 ] then begin freq(61 ,false); result:=result+'3d';end else
+if ord_input_i=table[62 ] then begin freq(62 ,false); result:=result+'3e';end else
+if ord_input_i=table[63 ] then begin freq(63 ,false); result:=result+'3f';end else
+if ord_input_i=table[64 ] then begin freq(64 ,false); result:=result+'40';end else
+if ord_input_i=table[65 ] then begin freq(65 ,false); result:=result+'41';end else
+if ord_input_i=table[66 ] then begin freq(66 ,false); result:=result+'42';end else
+if ord_input_i=table[67 ] then begin freq(67 ,false); result:=result+'43';end else
+if ord_input_i=table[68 ] then begin freq(68 ,false); result:=result+'44';end else
+if ord_input_i=table[69 ] then begin freq(69 ,false); result:=result+'45';end else
+if ord_input_i=table[70 ] then begin freq(70 ,false); result:=result+'46';end else
+if ord_input_i=table[71 ] then begin freq(71 ,false); result:=result+'47';end else
+if ord_input_i=table[72 ] then begin freq(72 ,false); result:=result+'48';end else
+if ord_input_i=table[73 ] then begin freq(73 ,false); result:=result+'49';end else
+if ord_input_i=table[74 ] then begin freq(74 ,false); result:=result+'4a';end else
+if ord_input_i=table[75 ] then begin freq(75 ,false); result:=result+'4b';end else
+if ord_input_i=table[76 ] then begin freq(76 ,false); result:=result+'4c';end else
+if ord_input_i=table[77 ] then begin freq(77 ,false); result:=result+'4d';end else
+if ord_input_i=table[78 ] then begin freq(78 ,false); result:=result+'4e';end else
+if ord_input_i=table[79 ] then begin freq(79 ,false); result:=result+'4f';end else
+if ord_input_i=table[80 ] then begin freq(80 ,false); result:=result+'50';end else
+if ord_input_i=table[81 ] then begin freq(81 ,false); result:=result+'51';end else
+if ord_input_i=table[82 ] then begin freq(82 ,false); result:=result+'52';end else
+if ord_input_i=table[83 ] then begin freq(83 ,false); result:=result+'53';end else
+if ord_input_i=table[84 ] then begin freq(84 ,false); result:=result+'54';end else
+if ord_input_i=table[85 ] then begin freq(85 ,false); result:=result+'55';end else
+if ord_input_i=table[86 ] then begin freq(86 ,false); result:=result+'56';end else
+if ord_input_i=table[87 ] then begin freq(87 ,false); result:=result+'57';end else
+if ord_input_i=table[88 ] then begin freq(88 ,false); result:=result+'58';end else
+if ord_input_i=table[89 ] then begin freq(89 ,false); result:=result+'59';end else
+if ord_input_i=table[90 ] then begin freq(90 ,false); result:=result+'5a';end else
+if ord_input_i=table[91 ] then begin freq(91 ,false); result:=result+'5b';end else
+if ord_input_i=table[92 ] then begin freq(92 ,false); result:=result+'5c';end else
+if ord_input_i=table[93 ] then begin freq(93 ,false); result:=result+'5d';end else
+if ord_input_i=table[94 ] then begin freq(94 ,false); result:=result+'5e';end else
+if ord_input_i=table[95 ] then begin freq(95 ,false); result:=result+'5f';end else
+if ord_input_i=table[96 ] then begin freq(96 ,false); result:=result+'60';end else
+if ord_input_i=table[97 ] then begin freq(97 ,false); result:=result+'61';end else
+if ord_input_i=table[98 ] then begin freq(98 ,false); result:=result+'62';end else
+if ord_input_i=table[99 ] then begin freq(99 ,false); result:=result+'63';end else
+if ord_input_i=table[100] then begin freq(100,false); result:=result+'64';end else
+if ord_input_i=table[101] then begin freq(101,false); result:=result+'65';end else
+if ord_input_i=table[102] then begin freq(102,false); result:=result+'66';end else
+if ord_input_i=table[103] then begin freq(103,false); result:=result+'67';end else
+if ord_input_i=table[104] then begin freq(104,false); result:=result+'68';end else
+if ord_input_i=table[105] then begin freq(105,false); result:=result+'69';end else
+if ord_input_i=table[106] then begin freq(106,false); result:=result+'6a';end else
+if ord_input_i=table[107] then begin freq(107,false); result:=result+'6b';end else
+if ord_input_i=table[108] then begin freq(108,false); result:=result+'6c';end else
+if ord_input_i=table[109] then begin freq(109,false); result:=result+'6d';end else
+if ord_input_i=table[110] then begin freq(110,false); result:=result+'6e';end else
+if ord_input_i=table[111] then begin freq(111,false); result:=result+'6f';end else
+if ord_input_i=table[112] then begin freq(112,false); result:=result+'70';end else
+if ord_input_i=table[113] then begin freq(113,false); result:=result+'71';end else
+if ord_input_i=table[114] then begin freq(114,false); result:=result+'72';end else
+if ord_input_i=table[115] then begin freq(115,false); result:=result+'73';end else
+if ord_input_i=table[116] then begin freq(116,false); result:=result+'74';end else
+if ord_input_i=table[117] then begin freq(117,false); result:=result+'75';end else
+if ord_input_i=table[118] then begin freq(118,false); result:=result+'76';end else
+if ord_input_i=table[119] then begin freq(119,false); result:=result+'77';end else
+if ord_input_i=table[120] then begin freq(120,false); result:=result+'78';end else
+if ord_input_i=table[121] then begin freq(121,false); result:=result+'79';end else
+if ord_input_i=table[122] then begin freq(122,false); result:=result+'7a';end else
+if ord_input_i=table[123] then begin freq(123,false); result:=result+'7b';end else
+if ord_input_i=table[124] then begin freq(124,false); result:=result+'7c';end else
+if ord_input_i=table[125] then begin freq(125,false); result:=result+'7d';end else
+if ord_input_i=table[126] then begin freq(126,false); result:=result+'7e';end else
+if ord_input_i=table[127] then begin freq(127,false); result:=result+'7f';end else
+if ord_input_i=table[128] then begin freq(128,false); result:=result+'80';end else
+if ord_input_i=table[129] then begin freq(129,false); result:=result+'81';end else
+if ord_input_i=table[130] then begin freq(130,false); result:=result+'82';end else
+if ord_input_i=table[131] then begin freq(131,false); result:=result+'83';end else
+if ord_input_i=table[132] then begin freq(132,false); result:=result+'84';end else
+if ord_input_i=table[133] then begin freq(133,false); result:=result+'85';end else
+if ord_input_i=table[134] then begin freq(134,false); result:=result+'86';end else
+if ord_input_i=table[135] then begin freq(135,false); result:=result+'87';end else
+if ord_input_i=table[136] then begin freq(136,false); result:=result+'88';end else
+if ord_input_i=table[137] then begin freq(137,false); result:=result+'89';end else
+if ord_input_i=table[138] then begin freq(138,false); result:=result+'8a';end else
+if ord_input_i=table[139] then begin freq(139,false); result:=result+'8b';end else
+if ord_input_i=table[140] then begin freq(140,false); result:=result+'8c';end else
+if ord_input_i=table[141] then begin freq(141,false); result:=result+'8d';end else
+if ord_input_i=table[142] then begin freq(142,false); result:=result+'8e';end else
+if ord_input_i=table[143] then begin freq(143,false); result:=result+'8f';end else
+if ord_input_i=table[144] then begin freq(144,false); result:=result+'90';end else
+if ord_input_i=table[145] then begin freq(145,false); result:=result+'91';end else
+if ord_input_i=table[146] then begin freq(146,false); result:=result+'92';end else
+if ord_input_i=table[147] then begin freq(147,false); result:=result+'93';end else
+if ord_input_i=table[148] then begin freq(148,false); result:=result+'94';end else
+if ord_input_i=table[149] then begin freq(149,false); result:=result+'95';end else
+if ord_input_i=table[150] then begin freq(150,false); result:=result+'96';end else
+if ord_input_i=table[151] then begin freq(151,false); result:=result+'97';end else
+if ord_input_i=table[152] then begin freq(152,false); result:=result+'98';end else
+if ord_input_i=table[153] then begin freq(153,false); result:=result+'99';end else
+if ord_input_i=table[154] then begin freq(154,false); result:=result+'9a';end else
+if ord_input_i=table[155] then begin freq(155,false); result:=result+'9b';end else
+if ord_input_i=table[156] then begin freq(156,false); result:=result+'9c';end else
+if ord_input_i=table[157] then begin freq(157,false); result:=result+'9d';end else
+if ord_input_i=table[158] then begin freq(158,false); result:=result+'9e';end else
+if ord_input_i=table[159] then begin freq(159,false); result:=result+'9f';end else
+if ord_input_i=table[160] then begin freq(160,false); result:=result+'a0';end else
+if ord_input_i=table[161] then begin freq(161,false); result:=result+'a1';end else
+if ord_input_i=table[162] then begin freq(162,false); result:=result+'a2';end else
+if ord_input_i=table[163] then begin freq(163,false); result:=result+'a3';end else
+if ord_input_i=table[164] then begin freq(164,false); result:=result+'a4';end else
+if ord_input_i=table[165] then begin freq(165,false); result:=result+'a5';end else
+if ord_input_i=table[166] then begin freq(166,false); result:=result+'a6';end else
+if ord_input_i=table[167] then begin freq(167,false); result:=result+'a7';end else
+if ord_input_i=table[168] then begin freq(168,false); result:=result+'a8';end else
+if ord_input_i=table[169] then begin freq(169,false); result:=result+'a9';end else
+if ord_input_i=table[170] then begin freq(170,false); result:=result+'aa';end else
+if ord_input_i=table[171] then begin freq(171,false); result:=result+'ab';end else
+if ord_input_i=table[172] then begin freq(172,false); result:=result+'ac';end else
+if ord_input_i=table[173] then begin freq(173,false); result:=result+'ad';end else
+if ord_input_i=table[174] then begin freq(174,false); result:=result+'ae';end else
+if ord_input_i=table[175] then begin freq(175,false); result:=result+'af';end else
+if ord_input_i=table[176] then begin freq(176,false); result:=result+'b0';end else
+if ord_input_i=table[177] then begin freq(177,false); result:=result+'b1';end else
+if ord_input_i=table[178] then begin freq(178,false); result:=result+'b2';end else
+if ord_input_i=table[179] then begin freq(179,false); result:=result+'b3';end else
+if ord_input_i=table[180] then begin freq(180,false); result:=result+'b4';end else
+if ord_input_i=table[181] then begin freq(181,false); result:=result+'b5';end else
+if ord_input_i=table[182] then begin freq(182,false); result:=result+'b6';end else
+if ord_input_i=table[183] then begin freq(183,false); result:=result+'b7';end else
+if ord_input_i=table[184] then begin freq(184,false); result:=result+'b8';end else
+if ord_input_i=table[185] then begin freq(185,false); result:=result+'b9';end else
+if ord_input_i=table[186] then begin freq(186,false); result:=result+'ba';end else
+if ord_input_i=table[187] then begin freq(187,false); result:=result+'bb';end else
+if ord_input_i=table[188] then begin freq(188,false); result:=result+'bc';end else
+if ord_input_i=table[189] then begin freq(189,false); result:=result+'bd';end else
+if ord_input_i=table[190] then begin freq(190,false); result:=result+'be';end else
+if ord_input_i=table[191] then begin freq(191,false); result:=result+'bf';end else
+if ord_input_i=table[192] then begin freq(192,false); result:=result+'c0';end else
+if ord_input_i=table[193] then begin freq(193,false); result:=result+'c1';end else
+if ord_input_i=table[194] then begin freq(194,false); result:=result+'c2';end else
+if ord_input_i=table[195] then begin freq(195,false); result:=result+'c3';end else
+if ord_input_i=table[196] then begin freq(196,false); result:=result+'c4';end else
+if ord_input_i=table[197] then begin freq(197,false); result:=result+'c5';end else
+if ord_input_i=table[198] then begin freq(198,false); result:=result+'c6';end else
+if ord_input_i=table[199] then begin freq(199,false); result:=result+'c7';end else
+if ord_input_i=table[200] then begin freq(200,false); result:=result+'c8';end else
+if ord_input_i=table[201] then begin freq(201,false); result:=result+'c9';end else
+if ord_input_i=table[202] then begin freq(202,false); result:=result+'ca';end else
+if ord_input_i=table[203] then begin freq(203,false); result:=result+'cb';end else
+if ord_input_i=table[204] then begin freq(204,false); result:=result+'cc';end else
+if ord_input_i=table[205] then begin freq(205,false); result:=result+'cd';end else
+if ord_input_i=table[206] then begin freq(206,false); result:=result+'ce';end else
+if ord_input_i=table[207] then begin freq(207,false); result:=result+'cf';end else
+if ord_input_i=table[208] then begin freq(208,false); result:=result+'d0';end else
+if ord_input_i=table[209] then begin freq(209,false); result:=result+'d1';end else
+if ord_input_i=table[210] then begin freq(210,false); result:=result+'d2';end else
+if ord_input_i=table[211] then begin freq(211,false); result:=result+'d3';end else
+if ord_input_i=table[212] then begin freq(212,false); result:=result+'d4';end else
+if ord_input_i=table[213] then begin freq(213,false); result:=result+'d5';end else
+if ord_input_i=table[214] then begin freq(214,false); result:=result+'d6';end else
+if ord_input_i=table[215] then begin freq(215,false); result:=result+'d7';end else
+if ord_input_i=table[216] then begin freq(216,false); result:=result+'d8';end else
+if ord_input_i=table[217] then begin freq(217,false); result:=result+'d9';end else
+if ord_input_i=table[218] then begin freq(218,false); result:=result+'da';end else
+if ord_input_i=table[219] then begin freq(219,false); result:=result+'db';end else
+if ord_input_i=table[220] then begin freq(220,false); result:=result+'dc';end else
+if ord_input_i=table[221] then begin freq(221,false); result:=result+'dd';end else
+if ord_input_i=table[222] then begin freq(222,false); result:=result+'de';end else
+if ord_input_i=table[223] then begin freq(223,false); result:=result+'df';end else
+if ord_input_i=table[224] then begin freq(224,false); result:=result+'e0';end else
+if ord_input_i=table[225] then begin freq(225,false); result:=result+'e1';end else
+if ord_input_i=table[226] then begin freq(226,false); result:=result+'e2';end else
+if ord_input_i=table[227] then begin freq(227,false); result:=result+'e3';end else
+if ord_input_i=table[228] then begin freq(228,false); result:=result+'e4';end else
+if ord_input_i=table[229] then begin freq(229,false); result:=result+'e5';end else
+if ord_input_i=table[230] then begin freq(230,false); result:=result+'e6';end else
+if ord_input_i=table[231] then begin freq(231,false); result:=result+'e7';end else
+if ord_input_i=table[232] then begin freq(232,false); result:=result+'e8';end else
+if ord_input_i=table[233] then begin freq(233,false); result:=result+'e9';end else
+if ord_input_i=table[234] then begin freq(234,false); result:=result+'ea';end else
+if ord_input_i=table[235] then begin freq(235,false); result:=result+'eb';end else
+if ord_input_i=table[236] then begin freq(236,false); result:=result+'ec';end else
+if ord_input_i=table[237] then begin freq(237,false); result:=result+'ed';end else
+if ord_input_i=table[238] then begin freq(238,false); result:=result+'ee';end else
+if ord_input_i=table[239] then begin freq(239,false); result:=result+'ef';end else
+if ord_input_i=table[240] then begin freq(240,false); result:=result+'f0';end else
+if ord_input_i=table[241] then begin freq(241,false); result:=result+'f1';end else
+if ord_input_i=table[242] then begin freq(242,false); result:=result+'f2';end else
+if ord_input_i=table[243] then begin freq(243,false); result:=result+'f3';end else
+if ord_input_i=table[244] then begin freq(244,false); result:=result+'f4';end else
+if ord_input_i=table[245] then begin freq(245,false); result:=result+'f5';end else
+if ord_input_i=table[246] then begin freq(246,false); result:=result+'f6';end else
+if ord_input_i=table[247] then begin freq(247,false); result:=result+'f7';end else
+if ord_input_i=table[248] then begin freq(248,false); result:=result+'f8';end else
+if ord_input_i=table[249] then begin freq(249,false); result:=result+'f9';end else
+if ord_input_i=table[250] then begin freq(250,false); result:=result+'fa';end else
+if ord_input_i=table[251] then begin freq(251,false); result:=result+'fb';end else
+if ord_input_i=table[252] then begin freq(252,false); result:=result+'fc';end else
+if ord_input_i=table[253] then begin freq(253,false); result:=result+'fd';end else
+if ord_input_i=table[254] then begin freq(254,false); result:=result+'fe';end else
+if ord_input_i=table[255] then begin freq(255,false); result:=result+'ff';end;
+//result:=result+'00';
+    if grouping>0 then begin//группировка символов
+      z:=z+1;
+      if z=grouping then begin result:=result+separator; z:=0;
+      end;
+    end;
+  end;
+end else
+
+  for I := 1 to length(input) do begin
+  ord_input_i:=ord(input[I]);
+if ord_input_i=table[0  ] then result:=result+'00' else
+if ord_input_i=table[1  ] then result:=result+'01' else
+if ord_input_i=table[2  ] then result:=result+'02' else
+if ord_input_i=table[3  ] then result:=result+'03' else
+if ord_input_i=table[4  ] then result:=result+'04' else
+if ord_input_i=table[5  ] then result:=result+'05' else
+if ord_input_i=table[6  ] then result:=result+'06' else
+if ord_input_i=table[7  ] then result:=result+'07' else
+if ord_input_i=table[8  ] then result:=result+'08' else
+if ord_input_i=table[9  ] then result:=result+'09' else
+if ord_input_i=table[10 ] then result:=result+'0a' else
+if ord_input_i=table[11 ] then result:=result+'0b' else
+if ord_input_i=table[12 ] then result:=result+'0c' else
+if ord_input_i=table[13 ] then result:=result+'0d' else
+if ord_input_i=table[14 ] then result:=result+'0e' else
+if ord_input_i=table[15 ] then result:=result+'0f' else
+if ord_input_i=table[16 ] then result:=result+'10' else
+if ord_input_i=table[17 ] then result:=result+'11' else
+if ord_input_i=table[18 ] then result:=result+'12' else
+if ord_input_i=table[19 ] then result:=result+'13' else
+if ord_input_i=table[20 ] then result:=result+'14' else
+if ord_input_i=table[21 ] then result:=result+'15' else
+if ord_input_i=table[22 ] then result:=result+'16' else
+if ord_input_i=table[23 ] then result:=result+'17' else
+if ord_input_i=table[24 ] then result:=result+'18' else
+if ord_input_i=table[25 ] then result:=result+'19' else
+if ord_input_i=table[26 ] then result:=result+'1a' else
+if ord_input_i=table[27 ] then result:=result+'1b' else
+if ord_input_i=table[28 ] then result:=result+'1c' else
+if ord_input_i=table[29 ] then result:=result+'1d' else
+if ord_input_i=table[30 ] then result:=result+'1e' else
+if ord_input_i=table[31 ] then result:=result+'1f' else
+if ord_input_i=table[32 ] then result:=result+'20' else
+if ord_input_i=table[33 ] then result:=result+'21' else
+if ord_input_i=table[34 ] then result:=result+'22' else
+if ord_input_i=table[35 ] then result:=result+'23' else
+if ord_input_i=table[36 ] then result:=result+'24' else
+if ord_input_i=table[37 ] then result:=result+'25' else
+if ord_input_i=table[38 ] then result:=result+'26' else
+if ord_input_i=table[39 ] then result:=result+'27' else
+if ord_input_i=table[40 ] then result:=result+'28' else
+if ord_input_i=table[41 ] then result:=result+'29' else
+if ord_input_i=table[42 ] then result:=result+'2a' else
+if ord_input_i=table[43 ] then result:=result+'2b' else
+if ord_input_i=table[44 ] then result:=result+'2c' else
+if ord_input_i=table[45 ] then result:=result+'2d' else
+if ord_input_i=table[46 ] then result:=result+'2e' else
+if ord_input_i=table[47 ] then result:=result+'2f' else
+if ord_input_i=table[48 ] then result:=result+'30' else
+if ord_input_i=table[49 ] then result:=result+'31' else
+if ord_input_i=table[50 ] then result:=result+'32' else
+if ord_input_i=table[51 ] then result:=result+'33' else
+if ord_input_i=table[52 ] then result:=result+'34' else
+if ord_input_i=table[53 ] then result:=result+'35' else
+if ord_input_i=table[54 ] then result:=result+'36' else
+if ord_input_i=table[55 ] then result:=result+'37' else
+if ord_input_i=table[56 ] then result:=result+'38' else
+if ord_input_i=table[57 ] then result:=result+'39' else
+if ord_input_i=table[58 ] then result:=result+'3a' else
+if ord_input_i=table[59 ] then result:=result+'3b' else
+if ord_input_i=table[60 ] then result:=result+'3c' else
+if ord_input_i=table[61 ] then result:=result+'3d' else
+if ord_input_i=table[62 ] then result:=result+'3e' else
+if ord_input_i=table[63 ] then result:=result+'3f' else
+if ord_input_i=table[64 ] then result:=result+'40' else
+if ord_input_i=table[65 ] then result:=result+'41' else
+if ord_input_i=table[66 ] then result:=result+'42' else
+if ord_input_i=table[67 ] then result:=result+'43' else
+if ord_input_i=table[68 ] then result:=result+'44' else
+if ord_input_i=table[69 ] then result:=result+'45' else
+if ord_input_i=table[70 ] then result:=result+'46' else
+if ord_input_i=table[71 ] then result:=result+'47' else
+if ord_input_i=table[72 ] then result:=result+'48' else
+if ord_input_i=table[73 ] then result:=result+'49' else
+if ord_input_i=table[74 ] then result:=result+'4a' else
+if ord_input_i=table[75 ] then result:=result+'4b' else
+if ord_input_i=table[76 ] then result:=result+'4c' else
+if ord_input_i=table[77 ] then result:=result+'4d' else
+if ord_input_i=table[78 ] then result:=result+'4e' else
+if ord_input_i=table[79 ] then result:=result+'4f' else
+if ord_input_i=table[80 ] then result:=result+'50' else
+if ord_input_i=table[81 ] then result:=result+'51' else
+if ord_input_i=table[82 ] then result:=result+'52' else
+if ord_input_i=table[83 ] then result:=result+'53' else
+if ord_input_i=table[84 ] then result:=result+'54' else
+if ord_input_i=table[85 ] then result:=result+'55' else
+if ord_input_i=table[86 ] then result:=result+'56' else
+if ord_input_i=table[87 ] then result:=result+'57' else
+if ord_input_i=table[88 ] then result:=result+'58' else
+if ord_input_i=table[89 ] then result:=result+'59' else
+if ord_input_i=table[90 ] then result:=result+'5a' else
+if ord_input_i=table[91 ] then result:=result+'5b' else
+if ord_input_i=table[92 ] then result:=result+'5c' else
+if ord_input_i=table[93 ] then result:=result+'5d' else
+if ord_input_i=table[94 ] then result:=result+'5e' else
+if ord_input_i=table[95 ] then result:=result+'5f' else
+if ord_input_i=table[96 ] then result:=result+'60' else
+if ord_input_i=table[97 ] then result:=result+'61' else
+if ord_input_i=table[98 ] then result:=result+'62' else
+if ord_input_i=table[99 ] then result:=result+'63' else
+if ord_input_i=table[100] then result:=result+'64' else
+if ord_input_i=table[101] then result:=result+'65' else
+if ord_input_i=table[102] then result:=result+'66' else
+if ord_input_i=table[103] then result:=result+'67' else
+if ord_input_i=table[104] then result:=result+'68' else
+if ord_input_i=table[105] then result:=result+'69' else
+if ord_input_i=table[106] then result:=result+'6a' else
+if ord_input_i=table[107] then result:=result+'6b' else
+if ord_input_i=table[108] then result:=result+'6c' else
+if ord_input_i=table[109] then result:=result+'6d' else
+if ord_input_i=table[110] then result:=result+'6e' else
+if ord_input_i=table[111] then result:=result+'6f' else
+if ord_input_i=table[112] then result:=result+'70' else
+if ord_input_i=table[113] then result:=result+'71' else
+if ord_input_i=table[114] then result:=result+'72' else
+if ord_input_i=table[115] then result:=result+'73' else
+if ord_input_i=table[116] then result:=result+'74' else
+if ord_input_i=table[117] then result:=result+'75' else
+if ord_input_i=table[118] then result:=result+'76' else
+if ord_input_i=table[119] then result:=result+'77' else
+if ord_input_i=table[120] then result:=result+'78' else
+if ord_input_i=table[121] then result:=result+'79' else
+if ord_input_i=table[122] then result:=result+'7a' else
+if ord_input_i=table[123] then result:=result+'7b' else
+if ord_input_i=table[124] then result:=result+'7c' else
+if ord_input_i=table[125] then result:=result+'7d' else
+if ord_input_i=table[126] then result:=result+'7e' else
+if ord_input_i=table[127] then result:=result+'7f' else
+if ord_input_i=table[128] then result:=result+'80' else
+if ord_input_i=table[129] then result:=result+'81' else
+if ord_input_i=table[130] then result:=result+'82' else
+if ord_input_i=table[131] then result:=result+'83' else
+if ord_input_i=table[132] then result:=result+'84' else
+if ord_input_i=table[133] then result:=result+'85' else
+if ord_input_i=table[134] then result:=result+'86' else
+if ord_input_i=table[135] then result:=result+'87' else
+if ord_input_i=table[136] then result:=result+'88' else
+if ord_input_i=table[137] then result:=result+'89' else
+if ord_input_i=table[138] then result:=result+'8a' else
+if ord_input_i=table[139] then result:=result+'8b' else
+if ord_input_i=table[140] then result:=result+'8c' else
+if ord_input_i=table[141] then result:=result+'8d' else
+if ord_input_i=table[142] then result:=result+'8e' else
+if ord_input_i=table[143] then result:=result+'8f' else
+if ord_input_i=table[144] then result:=result+'90' else
+if ord_input_i=table[145] then result:=result+'91' else
+if ord_input_i=table[146] then result:=result+'92' else
+if ord_input_i=table[147] then result:=result+'93' else
+if ord_input_i=table[148] then result:=result+'94' else
+if ord_input_i=table[149] then result:=result+'95' else
+if ord_input_i=table[150] then result:=result+'96' else
+if ord_input_i=table[151] then result:=result+'97' else
+if ord_input_i=table[152] then result:=result+'98' else
+if ord_input_i=table[153] then result:=result+'99' else
+if ord_input_i=table[154] then result:=result+'9a' else
+if ord_input_i=table[155] then result:=result+'9b' else
+if ord_input_i=table[156] then result:=result+'9c' else
+if ord_input_i=table[157] then result:=result+'9d' else
+if ord_input_i=table[158] then result:=result+'9e' else
+if ord_input_i=table[159] then result:=result+'9f' else
+if ord_input_i=table[160] then result:=result+'a0' else
+if ord_input_i=table[161] then result:=result+'a1' else
+if ord_input_i=table[162] then result:=result+'a2' else
+if ord_input_i=table[163] then result:=result+'a3' else
+if ord_input_i=table[164] then result:=result+'a4' else
+if ord_input_i=table[165] then result:=result+'a5' else
+if ord_input_i=table[166] then result:=result+'a6' else
+if ord_input_i=table[167] then result:=result+'a7' else
+if ord_input_i=table[168] then result:=result+'a8' else
+if ord_input_i=table[169] then result:=result+'a9' else
+if ord_input_i=table[170] then result:=result+'aa' else
+if ord_input_i=table[171] then result:=result+'ab' else
+if ord_input_i=table[172] then result:=result+'ac' else
+if ord_input_i=table[173] then result:=result+'ad' else
+if ord_input_i=table[174] then result:=result+'ae' else
+if ord_input_i=table[175] then result:=result+'af' else
+if ord_input_i=table[176] then result:=result+'b0' else
+if ord_input_i=table[177] then result:=result+'b1' else
+if ord_input_i=table[178] then result:=result+'b2' else
+if ord_input_i=table[179] then result:=result+'b3' else
+if ord_input_i=table[180] then result:=result+'b4' else
+if ord_input_i=table[181] then result:=result+'b5' else
+if ord_input_i=table[182] then result:=result+'b6' else
+if ord_input_i=table[183] then result:=result+'b7' else
+if ord_input_i=table[184] then result:=result+'b8' else
+if ord_input_i=table[185] then result:=result+'b9' else
+if ord_input_i=table[186] then result:=result+'ba' else
+if ord_input_i=table[187] then result:=result+'bb' else
+if ord_input_i=table[188] then result:=result+'bc' else
+if ord_input_i=table[189] then result:=result+'bd' else
+if ord_input_i=table[190] then result:=result+'be' else
+if ord_input_i=table[191] then result:=result+'bf' else
+if ord_input_i=table[192] then result:=result+'c0' else
+if ord_input_i=table[193] then result:=result+'c1' else
+if ord_input_i=table[194] then result:=result+'c2' else
+if ord_input_i=table[195] then result:=result+'c3' else
+if ord_input_i=table[196] then result:=result+'c4' else
+if ord_input_i=table[197] then result:=result+'c5' else
+if ord_input_i=table[198] then result:=result+'c6' else
+if ord_input_i=table[199] then result:=result+'c7' else
+if ord_input_i=table[200] then result:=result+'c8' else
+if ord_input_i=table[201] then result:=result+'c9' else
+if ord_input_i=table[202] then result:=result+'ca' else
+if ord_input_i=table[203] then result:=result+'cb' else
+if ord_input_i=table[204] then result:=result+'cc' else
+if ord_input_i=table[205] then result:=result+'cd' else
+if ord_input_i=table[206] then result:=result+'ce' else
+if ord_input_i=table[207] then result:=result+'cf' else
+if ord_input_i=table[208] then result:=result+'d0' else
+if ord_input_i=table[209] then result:=result+'d1' else
+if ord_input_i=table[210] then result:=result+'d2' else
+if ord_input_i=table[211] then result:=result+'d3' else
+if ord_input_i=table[212] then result:=result+'d4' else
+if ord_input_i=table[213] then result:=result+'d5' else
+if ord_input_i=table[214] then result:=result+'d6' else
+if ord_input_i=table[215] then result:=result+'d7' else
+if ord_input_i=table[216] then result:=result+'d8' else
+if ord_input_i=table[217] then result:=result+'d9' else
+if ord_input_i=table[218] then result:=result+'da' else
+if ord_input_i=table[219] then result:=result+'db' else
+if ord_input_i=table[220] then result:=result+'dc' else
+if ord_input_i=table[221] then result:=result+'dd' else
+if ord_input_i=table[222] then result:=result+'de' else
+if ord_input_i=table[223] then result:=result+'df' else
+if ord_input_i=table[224] then result:=result+'e0' else
+if ord_input_i=table[225] then result:=result+'e1' else
+if ord_input_i=table[226] then result:=result+'e2' else
+if ord_input_i=table[227] then result:=result+'e3' else
+if ord_input_i=table[228] then result:=result+'e4' else
+if ord_input_i=table[229] then result:=result+'e5' else
+if ord_input_i=table[230] then result:=result+'e6' else
+if ord_input_i=table[231] then result:=result+'e7' else
+if ord_input_i=table[232] then result:=result+'e8' else
+if ord_input_i=table[233] then result:=result+'e9' else
+if ord_input_i=table[234] then result:=result+'ea' else
+if ord_input_i=table[235] then result:=result+'eb' else
+if ord_input_i=table[236] then result:=result+'ec' else
+if ord_input_i=table[237] then result:=result+'ed' else
+if ord_input_i=table[238] then result:=result+'ee' else
+if ord_input_i=table[239] then result:=result+'ef' else
+if ord_input_i=table[240] then result:=result+'f0' else
+if ord_input_i=table[241] then result:=result+'f1' else
+if ord_input_i=table[242] then result:=result+'f2' else
+if ord_input_i=table[243] then result:=result+'f3' else
+if ord_input_i=table[244] then result:=result+'f4' else
+if ord_input_i=table[245] then result:=result+'f5' else
+if ord_input_i=table[246] then result:=result+'f6' else
+if ord_input_i=table[247] then result:=result+'f7' else
+if ord_input_i=table[248] then result:=result+'f8' else
+if ord_input_i=table[249] then result:=result+'f9' else
+if ord_input_i=table[250] then result:=result+'fa' else
+if ord_input_i=table[251] then result:=result+'fb' else
+if ord_input_i=table[252] then result:=result+'fc' else
+if ord_input_i=table[253] then result:=result+'fd' else
+if ord_input_i=table[254] then result:=result+'fe' else
+if ord_input_i=table[255] then result:=result+'ff';
+//result:=result+'00';
+    if grouping>0 then begin//группировка символов
+      z:=z+1;
+      if z=grouping then begin result:=result+separator; z:=0;
+      end;
+    end;
+  end;
+end;
+
+function decode(input:string):string;//функция дешифрования
+var i:longint;
+input_i_plus:string;
+begin
+result:='';
+i:=1;
+while i < length(input) do begin
+input_i_plus:=input[i]+input[i+1];
+if input_i_plus='00'then begin freq(0  ,false); result:=result+chr(table[0  ]) end else
+if input_i_plus='01'then begin freq(1  ,false); result:=result+chr(table[1  ]) end else
+if input_i_plus='02'then begin freq(2  ,false); result:=result+chr(table[2  ]) end else
+if input_i_plus='03'then begin freq(3  ,false); result:=result+chr(table[3  ]) end else
+if input_i_plus='04'then begin freq(4  ,false); result:=result+chr(table[4  ]) end else
+if input_i_plus='05'then begin freq(5  ,false); result:=result+chr(table[5  ]) end else
+if input_i_plus='06'then begin freq(6  ,false); result:=result+chr(table[6  ]) end else
+if input_i_plus='07'then begin freq(7  ,false); result:=result+chr(table[7  ]) end else
+if input_i_plus='08'then begin freq(8  ,false); result:=result+chr(table[8  ]) end else
+if input_i_plus='09'then begin freq(9  ,false); result:=result+chr(table[9  ]) end else
+if input_i_plus='0a'then begin freq(10 ,false); result:=result+chr(table[10 ]) end else
+if input_i_plus='0b'then begin freq(11 ,false); result:=result+chr(table[11 ]) end else
+if input_i_plus='0c'then begin freq(12 ,false); result:=result+chr(table[12 ]) end else
+if input_i_plus='0d'then begin freq(13 ,false); result:=result+chr(table[13 ]) end else
+if input_i_plus='0e'then begin freq(14 ,false); result:=result+chr(table[14 ]) end else
+if input_i_plus='0f'then begin freq(15 ,false); result:=result+chr(table[15 ]) end else
+if input_i_plus='10'then begin freq(16 ,false); result:=result+chr(table[16 ]) end else
+if input_i_plus='11'then begin freq(17 ,false); result:=result+chr(table[17 ]) end else
+if input_i_plus='12'then begin freq(18 ,false); result:=result+chr(table[18 ]) end else
+if input_i_plus='13'then begin freq(19 ,false); result:=result+chr(table[19 ]) end else
+if input_i_plus='14'then begin freq(20 ,false); result:=result+chr(table[20 ]) end else
+if input_i_plus='15'then begin freq(21 ,false); result:=result+chr(table[21 ]) end else
+if input_i_plus='16'then begin freq(22 ,false); result:=result+chr(table[22 ]) end else
+if input_i_plus='17'then begin freq(23 ,false); result:=result+chr(table[23 ]) end else
+if input_i_plus='18'then begin freq(24 ,false); result:=result+chr(table[24 ]) end else
+if input_i_plus='19'then begin freq(25 ,false); result:=result+chr(table[25 ]) end else
+if input_i_plus='1a'then begin freq(26 ,false); result:=result+chr(table[26 ]) end else
+if input_i_plus='1b'then begin freq(27 ,false); result:=result+chr(table[27 ]) end else
+if input_i_plus='1c'then begin freq(28 ,false); result:=result+chr(table[28 ]) end else
+if input_i_plus='1d'then begin freq(29 ,false); result:=result+chr(table[29 ]) end else
+if input_i_plus='1e'then begin freq(30 ,false); result:=result+chr(table[30 ]) end else
+if input_i_plus='1f'then begin freq(31 ,false); result:=result+chr(table[31 ]) end else
+if input_i_plus='20'then begin freq(32 ,false); result:=result+chr(table[32 ]) end else
+if input_i_plus='21'then begin freq(33 ,false); result:=result+chr(table[33 ]) end else
+if input_i_plus='22'then begin freq(34 ,false); result:=result+chr(table[34 ]) end else
+if input_i_plus='23'then begin freq(35 ,false); result:=result+chr(table[35 ]) end else
+if input_i_plus='24'then begin freq(36 ,false); result:=result+chr(table[36 ]) end else
+if input_i_plus='25'then begin freq(37 ,false); result:=result+chr(table[37 ]) end else
+if input_i_plus='26'then begin freq(38 ,false); result:=result+chr(table[38 ]) end else
+if input_i_plus='27'then begin freq(39 ,false); result:=result+chr(table[39 ]) end else
+if input_i_plus='28'then begin freq(40 ,false); result:=result+chr(table[40 ]) end else
+if input_i_plus='29'then begin freq(41 ,false); result:=result+chr(table[41 ]) end else
+if input_i_plus='2a'then begin freq(42 ,false); result:=result+chr(table[42 ]) end else
+if input_i_plus='2b'then begin freq(43 ,false); result:=result+chr(table[43 ]) end else
+if input_i_plus='2c'then begin freq(44 ,false); result:=result+chr(table[44 ]) end else
+if input_i_plus='2d'then begin freq(45 ,false); result:=result+chr(table[45 ]) end else
+if input_i_plus='2e'then begin freq(46 ,false); result:=result+chr(table[46 ]) end else
+if input_i_plus='2f'then begin freq(47 ,false); result:=result+chr(table[47 ]) end else
+if input_i_plus='30'then begin freq(48 ,false); result:=result+chr(table[48 ]) end else
+if input_i_plus='31'then begin freq(49 ,false); result:=result+chr(table[49 ]) end else
+if input_i_plus='32'then begin freq(50 ,false); result:=result+chr(table[50 ]) end else
+if input_i_plus='33'then begin freq(51 ,false); result:=result+chr(table[51 ]) end else
+if input_i_plus='34'then begin freq(52 ,false); result:=result+chr(table[52 ]) end else
+if input_i_plus='35'then begin freq(53 ,false); result:=result+chr(table[53 ]) end else
+if input_i_plus='36'then begin freq(54 ,false); result:=result+chr(table[54 ]) end else
+if input_i_plus='37'then begin freq(55 ,false); result:=result+chr(table[55 ]) end else
+if input_i_plus='38'then begin freq(56 ,false); result:=result+chr(table[56 ]) end else
+if input_i_plus='39'then begin freq(57 ,false); result:=result+chr(table[57 ]) end else
+if input_i_plus='3a'then begin freq(58 ,false); result:=result+chr(table[58 ]) end else
+if input_i_plus='3b'then begin freq(59 ,false); result:=result+chr(table[59 ]) end else
+if input_i_plus='3c'then begin freq(60 ,false); result:=result+chr(table[60 ]) end else
+if input_i_plus='3d'then begin freq(61 ,false); result:=result+chr(table[61 ]) end else
+if input_i_plus='3e'then begin freq(62 ,false); result:=result+chr(table[62 ]) end else
+if input_i_plus='3f'then begin freq(63 ,false); result:=result+chr(table[63 ]) end else
+if input_i_plus='40'then begin freq(64 ,false); result:=result+chr(table[64 ]) end else
+if input_i_plus='41'then begin freq(65 ,false); result:=result+chr(table[65 ]) end else
+if input_i_plus='42'then begin freq(66 ,false); result:=result+chr(table[66 ]) end else
+if input_i_plus='43'then begin freq(67 ,false); result:=result+chr(table[67 ]) end else
+if input_i_plus='44'then begin freq(68 ,false); result:=result+chr(table[68 ]) end else
+if input_i_plus='45'then begin freq(69 ,false); result:=result+chr(table[69 ]) end else
+if input_i_plus='46'then begin freq(70 ,false); result:=result+chr(table[70 ]) end else
+if input_i_plus='47'then begin freq(71 ,false); result:=result+chr(table[71 ]) end else
+if input_i_plus='48'then begin freq(72 ,false); result:=result+chr(table[72 ]) end else
+if input_i_plus='49'then begin freq(73 ,false); result:=result+chr(table[73 ]) end else
+if input_i_plus='4a'then begin freq(74 ,false); result:=result+chr(table[74 ]) end else
+if input_i_plus='4b'then begin freq(75 ,false); result:=result+chr(table[75 ]) end else
+if input_i_plus='4c'then begin freq(76 ,false); result:=result+chr(table[76 ]) end else
+if input_i_plus='4d'then begin freq(77 ,false); result:=result+chr(table[77 ]) end else
+if input_i_plus='4e'then begin freq(78 ,false); result:=result+chr(table[78 ]) end else
+if input_i_plus='4f'then begin freq(79 ,false); result:=result+chr(table[79 ]) end else
+if input_i_plus='50'then begin freq(80 ,false); result:=result+chr(table[80 ]) end else
+if input_i_plus='51'then begin freq(81 ,false); result:=result+chr(table[81 ]) end else
+if input_i_plus='52'then begin freq(82 ,false); result:=result+chr(table[82 ]) end else
+if input_i_plus='53'then begin freq(83 ,false); result:=result+chr(table[83 ]) end else
+if input_i_plus='54'then begin freq(84 ,false); result:=result+chr(table[84 ]) end else
+if input_i_plus='55'then begin freq(85 ,false); result:=result+chr(table[85 ]) end else
+if input_i_plus='56'then begin freq(86 ,false); result:=result+chr(table[86 ]) end else
+if input_i_plus='57'then begin freq(87 ,false); result:=result+chr(table[87 ]) end else
+if input_i_plus='58'then begin freq(88 ,false); result:=result+chr(table[88 ]) end else
+if input_i_plus='59'then begin freq(89 ,false); result:=result+chr(table[89 ]) end else
+if input_i_plus='5a'then begin freq(90 ,false); result:=result+chr(table[90 ]) end else
+if input_i_plus='5b'then begin freq(91 ,false); result:=result+chr(table[91 ]) end else
+if input_i_plus='5c'then begin freq(92 ,false); result:=result+chr(table[92 ]) end else
+if input_i_plus='5d'then begin freq(93 ,false); result:=result+chr(table[93 ]) end else
+if input_i_plus='5e'then begin freq(94 ,false); result:=result+chr(table[94 ]) end else
+if input_i_plus='5f'then begin freq(95 ,false); result:=result+chr(table[95 ]) end else
+if input_i_plus='60'then begin freq(96 ,false); result:=result+chr(table[96 ]) end else
+if input_i_plus='61'then begin freq(97 ,false); result:=result+chr(table[97 ]) end else
+if input_i_plus='62'then begin freq(98 ,false); result:=result+chr(table[98 ]) end else
+if input_i_plus='63'then begin freq(99 ,false); result:=result+chr(table[99 ]) end else
+if input_i_plus='64'then begin freq(100,false); result:=result+chr(table[100]) end else
+if input_i_plus='65'then begin freq(101,false); result:=result+chr(table[101]) end else
+if input_i_plus='66'then begin freq(102,false); result:=result+chr(table[102]) end else
+if input_i_plus='67'then begin freq(103,false); result:=result+chr(table[103]) end else
+if input_i_plus='68'then begin freq(104,false); result:=result+chr(table[104]) end else
+if input_i_plus='69'then begin freq(105,false); result:=result+chr(table[105]) end else
+if input_i_plus='6a'then begin freq(106,false); result:=result+chr(table[106]) end else
+if input_i_plus='6b'then begin freq(107,false); result:=result+chr(table[107]) end else
+if input_i_plus='6c'then begin freq(108,false); result:=result+chr(table[108]) end else
+if input_i_plus='6d'then begin freq(109,false); result:=result+chr(table[109]) end else
+if input_i_plus='6e'then begin freq(110,false); result:=result+chr(table[110]) end else
+if input_i_plus='6f'then begin freq(111,false); result:=result+chr(table[111]) end else
+if input_i_plus='70'then begin freq(112,false); result:=result+chr(table[112]) end else
+if input_i_plus='71'then begin freq(113,false); result:=result+chr(table[113]) end else
+if input_i_plus='72'then begin freq(114,false); result:=result+chr(table[114]) end else
+if input_i_plus='73'then begin freq(115,false); result:=result+chr(table[115]) end else
+if input_i_plus='74'then begin freq(116,false); result:=result+chr(table[116]) end else
+if input_i_plus='75'then begin freq(117,false); result:=result+chr(table[117]) end else
+if input_i_plus='76'then begin freq(118,false); result:=result+chr(table[118]) end else
+if input_i_plus='77'then begin freq(119,false); result:=result+chr(table[119]) end else
+if input_i_plus='78'then begin freq(120,false); result:=result+chr(table[120]) end else
+if input_i_plus='79'then begin freq(121,false); result:=result+chr(table[121]) end else
+if input_i_plus='7a'then begin freq(122,false); result:=result+chr(table[122]) end else
+if input_i_plus='7b'then begin freq(123,false); result:=result+chr(table[123]) end else
+if input_i_plus='7c'then begin freq(124,false); result:=result+chr(table[124]) end else
+if input_i_plus='7d'then begin freq(125,false); result:=result+chr(table[125]) end else
+if input_i_plus='7e'then begin freq(126,false); result:=result+chr(table[126]) end else
+if input_i_plus='7f'then begin freq(127,false); result:=result+chr(table[127]) end else
+if input_i_plus='80'then begin freq(128,false); result:=result+chr(table[128]) end else
+if input_i_plus='81'then begin freq(129,false); result:=result+chr(table[129]) end else
+if input_i_plus='82'then begin freq(130,false); result:=result+chr(table[130]) end else
+if input_i_plus='83'then begin freq(131,false); result:=result+chr(table[131]) end else
+if input_i_plus='84'then begin freq(132,false); result:=result+chr(table[132]) end else
+if input_i_plus='85'then begin freq(133,false); result:=result+chr(table[133]) end else
+if input_i_plus='86'then begin freq(134,false); result:=result+chr(table[134]) end else
+if input_i_plus='87'then begin freq(135,false); result:=result+chr(table[135]) end else
+if input_i_plus='88'then begin freq(136,false); result:=result+chr(table[136]) end else
+if input_i_plus='89'then begin freq(137,false); result:=result+chr(table[137]) end else
+if input_i_plus='8a'then begin freq(138,false); result:=result+chr(table[138]) end else
+if input_i_plus='8b'then begin freq(139,false); result:=result+chr(table[139]) end else
+if input_i_plus='8c'then begin freq(140,false); result:=result+chr(table[140]) end else
+if input_i_plus='8d'then begin freq(141,false); result:=result+chr(table[141]) end else
+if input_i_plus='8e'then begin freq(142,false); result:=result+chr(table[142]) end else
+if input_i_plus='8f'then begin freq(143,false); result:=result+chr(table[143]) end else
+if input_i_plus='90'then begin freq(144,false); result:=result+chr(table[144]) end else
+if input_i_plus='91'then begin freq(145,false); result:=result+chr(table[145]) end else
+if input_i_plus='92'then begin freq(146,false); result:=result+chr(table[146]) end else
+if input_i_plus='93'then begin freq(147,false); result:=result+chr(table[147]) end else
+if input_i_plus='94'then begin freq(148,false); result:=result+chr(table[148]) end else
+if input_i_plus='95'then begin freq(149,false); result:=result+chr(table[149]) end else
+if input_i_plus='96'then begin freq(150,false); result:=result+chr(table[150]) end else
+if input_i_plus='97'then begin freq(151,false); result:=result+chr(table[151]) end else
+if input_i_plus='98'then begin freq(152,false); result:=result+chr(table[152]) end else
+if input_i_plus='99'then begin freq(153,false); result:=result+chr(table[153]) end else
+if input_i_plus='9a'then begin freq(154,false); result:=result+chr(table[154]) end else
+if input_i_plus='9b'then begin freq(155,false); result:=result+chr(table[155]) end else
+if input_i_plus='9c'then begin freq(156,false); result:=result+chr(table[156]) end else
+if input_i_plus='9d'then begin freq(157,false); result:=result+chr(table[157]) end else
+if input_i_plus='9e'then begin freq(158,false); result:=result+chr(table[158]) end else
+if input_i_plus='9f'then begin freq(159,false); result:=result+chr(table[159]) end else
+if input_i_plus='a0'then begin freq(160,false); result:=result+chr(table[160]) end else
+if input_i_plus='a1'then begin freq(161,false); result:=result+chr(table[161]) end else
+if input_i_plus='a2'then begin freq(162,false); result:=result+chr(table[162]) end else
+if input_i_plus='a3'then begin freq(163,false); result:=result+chr(table[163]) end else
+if input_i_plus='a4'then begin freq(164,false); result:=result+chr(table[164]) end else
+if input_i_plus='a5'then begin freq(165,false); result:=result+chr(table[165]) end else
+if input_i_plus='a6'then begin freq(166,false); result:=result+chr(table[166]) end else
+if input_i_plus='a7'then begin freq(167,false); result:=result+chr(table[167]) end else
+if input_i_plus='a8'then begin freq(168,false); result:=result+chr(table[168]) end else
+if input_i_plus='a9'then begin freq(169,false); result:=result+chr(table[169]) end else
+if input_i_plus='aa'then begin freq(170,false); result:=result+chr(table[170]) end else
+if input_i_plus='ab'then begin freq(171,false); result:=result+chr(table[171]) end else
+if input_i_plus='ac'then begin freq(172,false); result:=result+chr(table[172]) end else
+if input_i_plus='ad'then begin freq(173,false); result:=result+chr(table[173]) end else
+if input_i_plus='ae'then begin freq(174,false); result:=result+chr(table[174]) end else
+if input_i_plus='af'then begin freq(175,false); result:=result+chr(table[175]) end else
+if input_i_plus='b0'then begin freq(176,false); result:=result+chr(table[176]) end else
+if input_i_plus='b1'then begin freq(177,false); result:=result+chr(table[177]) end else
+if input_i_plus='b2'then begin freq(178,false); result:=result+chr(table[178]) end else
+if input_i_plus='b3'then begin freq(179,false); result:=result+chr(table[179]) end else
+if input_i_plus='b4'then begin freq(180,false); result:=result+chr(table[180]) end else
+if input_i_plus='b5'then begin freq(181,false); result:=result+chr(table[181]) end else
+if input_i_plus='b6'then begin freq(182,false); result:=result+chr(table[182]) end else
+if input_i_plus='b7'then begin freq(183,false); result:=result+chr(table[183]) end else
+if input_i_plus='b8'then begin freq(184,false); result:=result+chr(table[184]) end else
+if input_i_plus='b9'then begin freq(185,false); result:=result+chr(table[185]) end else
+if input_i_plus='ba'then begin freq(186,false); result:=result+chr(table[186]) end else
+if input_i_plus='bb'then begin freq(187,false); result:=result+chr(table[187]) end else
+if input_i_plus='bc'then begin freq(188,false); result:=result+chr(table[188]) end else
+if input_i_plus='bd'then begin freq(189,false); result:=result+chr(table[189]) end else
+if input_i_plus='be'then begin freq(190,false); result:=result+chr(table[190]) end else
+if input_i_plus='bf'then begin freq(191,false); result:=result+chr(table[191]) end else
+if input_i_plus='c0'then begin freq(192,false); result:=result+chr(table[192]) end else
+if input_i_plus='c1'then begin freq(193,false); result:=result+chr(table[193]) end else
+if input_i_plus='c2'then begin freq(194,false); result:=result+chr(table[194]) end else
+if input_i_plus='c3'then begin freq(195,false); result:=result+chr(table[195]) end else
+if input_i_plus='c4'then begin freq(196,false); result:=result+chr(table[196]) end else
+if input_i_plus='c5'then begin freq(197,false); result:=result+chr(table[197]) end else
+if input_i_plus='c6'then begin freq(198,false); result:=result+chr(table[198]) end else
+if input_i_plus='c7'then begin freq(199,false); result:=result+chr(table[199]) end else
+if input_i_plus='c8'then begin freq(200,false); result:=result+chr(table[200]) end else
+if input_i_plus='c9'then begin freq(201,false); result:=result+chr(table[201]) end else
+if input_i_plus='ca'then begin freq(202,false); result:=result+chr(table[202]) end else
+if input_i_plus='cb'then begin freq(203,false); result:=result+chr(table[203]) end else
+if input_i_plus='cc'then begin freq(204,false); result:=result+chr(table[204]) end else
+if input_i_plus='cd'then begin freq(205,false); result:=result+chr(table[205]) end else
+if input_i_plus='ce'then begin freq(206,false); result:=result+chr(table[206]) end else
+if input_i_plus='cf'then begin freq(207,false); result:=result+chr(table[207]) end else
+if input_i_plus='d0'then begin freq(208,false); result:=result+chr(table[208]) end else
+if input_i_plus='d1'then begin freq(209,false); result:=result+chr(table[209]) end else
+if input_i_plus='d2'then begin freq(210,false); result:=result+chr(table[210]) end else
+if input_i_plus='d3'then begin freq(211,false); result:=result+chr(table[211]) end else
+if input_i_plus='d4'then begin freq(212,false); result:=result+chr(table[212]) end else
+if input_i_plus='d5'then begin freq(213,false); result:=result+chr(table[213]) end else
+if input_i_plus='d6'then begin freq(214,false); result:=result+chr(table[214]) end else
+if input_i_plus='d7'then begin freq(215,false); result:=result+chr(table[215]) end else
+if input_i_plus='d8'then begin freq(216,false); result:=result+chr(table[216]) end else
+if input_i_plus='d9'then begin freq(217,false); result:=result+chr(table[217]) end else
+if input_i_plus='da'then begin freq(218,false); result:=result+chr(table[218]) end else
+if input_i_plus='db'then begin freq(219,false); result:=result+chr(table[219]) end else
+if input_i_plus='dc'then begin freq(220,false); result:=result+chr(table[220]) end else
+if input_i_plus='dd'then begin freq(221,false); result:=result+chr(table[221]) end else
+if input_i_plus='de'then begin freq(222,false); result:=result+chr(table[222]) end else
+if input_i_plus='df'then begin freq(223,false); result:=result+chr(table[223]) end else
+if input_i_plus='e0'then begin freq(224,false); result:=result+chr(table[224]) end else
+if input_i_plus='e1'then begin freq(225,false); result:=result+chr(table[225]) end else
+if input_i_plus='e2'then begin freq(226,false); result:=result+chr(table[226]) end else
+if input_i_plus='e3'then begin freq(227,false); result:=result+chr(table[227]) end else
+if input_i_plus='e4'then begin freq(228,false); result:=result+chr(table[228]) end else
+if input_i_plus='e5'then begin freq(229,false); result:=result+chr(table[229]) end else
+if input_i_plus='e6'then begin freq(230,false); result:=result+chr(table[230]) end else
+if input_i_plus='e7'then begin freq(231,false); result:=result+chr(table[231]) end else
+if input_i_plus='e8'then begin freq(232,false); result:=result+chr(table[232]) end else
+if input_i_plus='e9'then begin freq(233,false); result:=result+chr(table[233]) end else
+if input_i_plus='ea'then begin freq(234,false); result:=result+chr(table[234]) end else
+if input_i_plus='eb'then begin freq(235,false); result:=result+chr(table[235]) end else
+if input_i_plus='ec'then begin freq(236,false); result:=result+chr(table[236]) end else
+if input_i_plus='ed'then begin freq(237,false); result:=result+chr(table[237]) end else
+if input_i_plus='ee'then begin freq(238,false); result:=result+chr(table[238]) end else
+if input_i_plus='ef'then begin freq(239,false); result:=result+chr(table[239]) end else
+if input_i_plus='f0'then begin freq(240,false); result:=result+chr(table[240]) end else
+if input_i_plus='f1'then begin freq(241,false); result:=result+chr(table[241]) end else
+if input_i_plus='f2'then begin freq(242,false); result:=result+chr(table[242]) end else
+if input_i_plus='f3'then begin freq(243,false); result:=result+chr(table[243]) end else
+if input_i_plus='f4'then begin freq(244,false); result:=result+chr(table[244]) end else
+if input_i_plus='f5'then begin freq(245,false); result:=result+chr(table[245]) end else
+if input_i_plus='f6'then begin freq(246,false); result:=result+chr(table[246]) end else
+if input_i_plus='f7'then begin freq(247,false); result:=result+chr(table[247]) end else
+if input_i_plus='f8'then begin freq(248,false); result:=result+chr(table[248]) end else
+if input_i_plus='f9'then begin freq(249,false); result:=result+chr(table[249]) end else
+if input_i_plus='fa'then begin freq(250,false); result:=result+chr(table[250]) end else
+if input_i_plus='fb'then begin freq(251,false); result:=result+chr(table[251]) end else
+if input_i_plus='fc'then begin freq(252,false); result:=result+chr(table[252]) end else
+if input_i_plus='fd'then begin freq(253,false); result:=result+chr(table[253]) end else
+if input_i_plus='fe'then begin freq(254,false); result:=result+chr(table[254]) end else
+if input_i_plus='ff'then begin freq(255,false); result:=result+chr(table[255]) end;//else
+//result:=#00;
+i:=i+2;
+end;
+end;
+end.

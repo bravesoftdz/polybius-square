@@ -1,0 +1,1151 @@
+unit Threads;
+
+interface
+
+{#region Uses}                                   {$REGION}
+uses
+	Windows, SysUtils, Classes, Dialogs, ShellApi; {$ENDREGION}
+
+{#region Classes}                                {$REGION}
+type
+	TDataThread = class(TThread)
+	procedure UpdateVCL;
+	private
+		id							: integer;
+		
+		MessageDlgResult: integer;
+		procedure Call(func: string; params: string);
+	protected
+		procedure Execute; override;
+	public
+		Todo: AnsiString;
+		progress 				: extended;
+		speed						:	extended;
+		_FileSize				:	int64;
+		BlockSize				:	int64;
+		params					: string;
+	end;
+	TVCLThread = class(TThread)
+
+	private
+		{ Private declarations }
+	protected
+		procedure Execute; override;
+	end;
+																								 {$ENDREGION}
+
+	procedure run(todo: string); overload;
+	procedure run(todo,params: string); overload;
+
+{#region Variables/Constants}                    {$REGION}
+const
+		Thresold 				: Integer 	= 16777216; //16 Mb
+		_64Mb						: Integer		= 67108864;	//64 Mb
+		UpdateInterval 	: cardinal 	= 50; 			//50 ms
+
+		dp_encode2									= $0;
+		dp_decode2									= $1;
+
+var DataThread			: TDataThread;
+		VCLThread				: TVCLThread;                {$ENDREGION}
+
+implementation
+
+uses encoder, Unit38, Unit40, TABPGDLG, Unit39, Batch, Functions, key_generator,
+  Unit41;
+
+{#region TDataThread.Execute}{$REGION}
+procedure TDataThread.Execute;	// God object, hi! ^_^
+
+	function DynProc(Data: PAnsiString; Proc: Cardinal): boolean;
+
+	var _FileSize: integer;
+			i				 : integer;
+			onebyte	 : byte;
+			keyptr2	 : PKey2;
+	begin
+		result := false;
+		if data = nil then
+			EXIT;
+		keyPTR2 := @Table2;
+		case proc of
+			dp_encode2, dp_decode2: begin
+				_FileSize := length(data^);
+				self.BlockSize := 1024;
+				if _FileSize = 0 then
+					EXIT;
+				for I := 0 to 255 do
+					table[i] := i;
+				i := 0;
+				while i <= _FileSize div 1024 do begin
+					if i = 0 then begin
+						i := -1;
+						onebyte := 1;
+					end else
+						onebyte := 0;
+					if passPrompt.TextSafe.checked then
+						generate_random_key(0, 1024, 32, 255, false, keyPtr2)
+					else
+						generate_random_key(0, 1024,  0, 255, false, keyPtr2);
+					if proc = dp_encode2 then
+						invert(keyPtr2);
+					file_decode_2dimm(data, keyPTR2, 0, i shl 10);
+					inc(i, onebyte + 1);
+					if (_filesize >= 1024) and (Todo <> 'batch') then
+						progress := i / (_filesize div 1024);
+				end;
+				setLength(Table2, 0);
+			end
+			else EXIT;
+		end;
+		result := true;
+	end;
+
+var
+		_file,_file1		: file;
+		FileStream1			:	TFileStream;
+		FileStream2			:	TFileStream;
+		buf							:	array[0..4095] of byte;
+		frequence				: TFrequency;
+		onebyte     		:	byte;
+		i,i2,i3,i4			:	integer;
+		I64,I264				: int64;
+		_FilePos				: int64;
+		ext							: extended;
+		turbo_mode			:	boolean;
+		freq_analyze		:	boolean;
+		batch_overwrite	:	boolean;
+		pointer					: PAnsiString;
+		keyptr					: PKey;
+		keyptr2					: PKey2;
+		t0							: cardinal;
+		FileName				:	string;
+		SaveName				:	string;
+		TopDir,tmp			:	string;
+		wideStr					: WideString;
+		FileTimes				: TFileTimes;
+
+label _exit;
+
+begin
+Form39.maskcollector;
+pointer 		 := @binary_data;
+keyPtr			 := @table;
+keyPtr2 		 := @table2;
+freq_analyze := pagesdlg.checkbox1.checked;
+turbo_mode 	 := pagesdlg.checkbox4.checked;
+t0					 := gettickcount;
+encoder.progress		 := 0;
+self.progress				 := 0;
+batch_overwrite:=false;
+ToDo				 := AnsiLowerCase(todo);
+VCLThread := TVCLThread.Create(True);
+VCLThread.FreeOnTerminate := True;
+VCLThread.Resume;
+
+{#region encode/decode/encode2/decode2/encodeDyn/decodeDyn/frequency}{$REGION}
+if Todo = 'encode' then begin
+	Call('progressForm.panel1.caption','Шифрование...');
+	_FileSize := length(binary_data);
+	if turbo_mode then begin
+		invert(keyptr);
+		file_decode(pointer,keyptr); // :-)
+		invert(keyptr);
+	end else
+		file_encode(pointer,keyptr);
+	if freq_analyze then begin
+		Call('progressForm.panel1.caption','Частотный анализ...');
+		unit38.frequence := Frequency_analysis(@binary_data);
+		Call('form39.draw_graph','');
+	end;
+	Call('trackbar.perform(onchange)','');
+	Call('form39.label39.caption','Encode/Decode Time: '+inttostr(gettickcount-t0)+'ms');
+	Call('unlock_controls','');
+end else
+
+if Todo = 'decode' then begin
+	 Call('progressForm.panel1.caption','Дешифрование...');
+	 _FileSize := length(binary_data);
+	 file_decode(pointer,keyptr);
+	 if freq_analyze then begin
+		Call('progressForm.panel1.caption','Частотный анализ...');
+		unit38.frequence := Frequency_analysis(@binary_data);
+		Call('form39.draw_graph','');
+	 end;
+	 Call('trackbar.perform(onchange)','');
+	 Call('form39.label39.caption','Encode/Decode Time: '+inttostr(gettickcount-t0)+'ms');
+	 Call('unlock_controls','');
+end
+else
+
+if Todo = 'encode_2dimm' then begin
+	Call('progressForm.panel1.caption','Двумерное шифрование...');
+	_FileSize := length(binary_data);
+	if turbo_mode then begin
+		invert(keyptr2);
+		file_decode_2dimm(pointer,keyptr2); // :-)
+		invert(keyptr2);
+	end else
+		file_encode_2dimm(pointer,keyptr2);
+	if freq_analyze then begin
+		Call('progressForm.panel1.caption','Частотный анализ...');
+		unit38.frequence := Frequency_analysis(@binary_data);
+		Call('form39.draw_graph','');
+	end;
+	Call('trackbar.perform(onchange)','');
+	Call('form39.label39.caption','Encode/Decode Time: '+inttostr(gettickcount-t0)+'ms');
+	Call('unlock_controls','');
+end else
+
+if Todo = 'decode_2dimm' then begin
+	Call('Lock_Controls','');
+	Call('progressForm.panel1.caption','Двумерное дешифрование...');
+	_FileSize := length(binary_data);
+	file_decode_2dimm(pointer,keyptr2);
+	if freq_analyze then begin
+		Call('progressForm.panel1.caption','Частотный анализ...');
+		unit38.frequence := Frequency_analysis(@binary_data);
+		Call('form39.draw_graph','');
+	end;
+	Call('trackbar.perform(onchange)','');
+	Call('form39.label39.caption','Encode/Decode Time: '+inttostr(gettickcount-t0)+'ms');
+	Call('unlock_controls','');
+end else
+
+if (Todo = 'encode_dyn') or (Todo = 'decode_dyn') then begin
+	Call('lock_controls','');
+	Call('progressForm.panel1.caption','Двумерное шифрование...');
+	for I := 0 to 255 do
+		table[i] := i;
+	if not binary_mode and pagesDlg.CheckBox2.Checked and (Todo = 'decode_dyn') then
+		pointer^ := decode(garbage_collector(pointer^),keyPtr);
+	{_FileSize := length(pointer^);
+	i := 0;
+	while i <= _FileSize div 1024 do begin
+		if i = 0 then begin
+			i := -1;
+			onebyte := 1;
+		end else
+			onebyte := 0;
+		if passPrompt.TextSafe.checked then
+			generate_random_key(0, 1024, 32, 255, false, keyPtr2)
+		else
+			generate_random_key(0, 1024,  0, 255, false, keyPtr2);
+		if (Todo = 'encode_dyn') then
+			invert(keyPtr2);
+		file_decode_2dimm(pointer, keyPtr2, 0, i shl 10);
+		inc(i, onebyte + 1);
+		if _filesize >= 1024 then
+			progress := i / (_filesize div 1024);
+	end;
+	setLength(Table2, 0);}
+	if Todo = 'encode_dyn' then
+		DynProc(pointer, dp_encode2)
+	else
+		DynProc(pointer, dp_decode2);
+
+	for I := 0 to 255 do
+		table[i] := i;
+	if freq_analyze then begin
+		Call('progressForm.panel1.caption','Частотный анализ...');
+		unit38.frequence := Frequency_analysis(@binary_data);
+		Call('form39.draw_graph','');
+	end;
+	if not binary_mode then begin
+		if pagesDlg.CheckBox2.Checked and (Todo = 'encode_dyn') then
+			binary_data := encode( 		binary_data,
+																keyptr,
+																strtoint(pagesdlg.Edit1.text),
+																pagesdlg.edit2.text
+															);
+		Call('form38.richedit1.lines.add','');
+		binary_data := '';
+	end;
+
+	Call('trackbar.perform(onchange)','');
+	Call('form39.label39.caption','Encode/Decode Time: '+inttostr(gettickcount-t0)+'ms');
+	Call('unlock_controls','');
+end else
+
+if ToDo = 'frequency_analysis' then
+begin
+	Call('progressForm.panel1.caption','Частотный анализ...');
+	_FileSize := length(binary_data);
+	unit38.frequence := Frequency_analysis(@binary_data);
+	Call('form39.draw_graph','');
+	Call('unlock_controls','');
+end else
+{$ENDREGION}
+
+{#region load/save file}{$REGION}
+if ToDo = 'load_file' then
+begin
+	Call('progressForm.panel1.caption','Чтение файла...');
+	assignfile(_file,form38.tetxtload.FileName);
+	reset(_file,1);
+	_fileSize := fileSize(_file);
+	closeFile(_file);
+	if load_file(form38.tetxtload.FileName,False) then
+		Call('trackbar.perform(onchange)','')
+	else Call('form38.cleanup_form','');
+
+	synchronize(progressform.Close);
+	Call('unlock_controls','');
+end else
+
+if ToDo = 'save_file' then
+begin
+	Call('progressForm.panel1.caption','Запись файла...');
+	save_file(form38.codesave.filename,True);
+	synchronize(progressform.Close);
+	Call('trackbar.perform(onchange)','');
+	Call('unlock_controls','');
+end else
+{$ENDREGION}
+
+{#region Batch}{$REGION}
+if ToDo = 'batch' then
+begin
+	Call('batchForm.hide','');
+	if batchForm.CheckBox4.Checked and (not batchForm.CheckBox5.Checked) then
+		TopDir := ExtractTopLevelDir(batchForm.ListBox1.Items);
+				i := 0; while i < batchForm.listbox1.items.Count do begin
+					FileName := batchForm.ListBox1.Items[i];
+					if batchForm.CheckBox3.Checked then
+						FileTimes := GetFileTimes(FileName);
+					if FileExists(FileName) then begin
+						try
+							load_file(FileName,False);
+						except
+							if batchForm.CheckBox2.Checked then begin
+								inc(i);
+								Continue;
+							end
+							else begin
+								Call('messagedlg#readerror',FileName);
+								case MessageDlgResult of
+									3: break;
+									4: begin inc(i,-1); continue; end;
+									5: continue;
+								end;
+							end;
+						end;
+						if (batchForm.CheckBox1.Checked and not batchForm.CheckBox5.Checked) then
+							DeleteFile(FileName);
+						if batchForm.CheckBox11.Checked then
+							case batchForm.listbox2.ItemIndex of
+								0,1: begin
+											if passPrompt.TextSafe.Checked then
+												generate_random_key(0, 1, 32, 255, true, keyptr2)
+											else
+												generate_random_key(0, 1,  0, 255, true, keyptr2);
+											table := table2[0];
+											setLength(table2, 0);
+										end;
+							end;
+						case batchForm.listbox2.ItemIndex of
+{encode}		0: begin
+								Call('progressform.panel1.caption','Batch processing: '+
+											inttostr(i)+' of '+
+											inttostr(batchForm.listbox1.items.Count)+' done');
+								if turbo_mode then begin
+									invert(keyptr);
+									file_decode(@binary_data,keyptr); // :-)
+									invert(keyptr);
+								end else
+									file_encode(@binary_data,keyptr);
+							 end;
+{decode}		1: begin
+								Call('progressform.panel1.caption','Batch processing: '+
+											inttostr(i)+' of '+
+											inttostr(batchForm.listbox1.items.Count)+' done');
+								file_decode(@binary_data,keyptr);
+							 end;
+{encode2}		2: begin
+								Call('progressform.panel1.caption','Batch processing: '+
+											inttostr(i)+' of '+
+											inttostr(batchForm.listbox1.items.Count)+' done');
+								if batchForm.CheckBox11.Checked then
+									DynProc(@binary_data, dp_encode2)
+								else if turbo_mode then begin
+									invert(keyptr2);
+									file_decode_2dimm(@binary_data,keyptr2); // :-)
+									invert(keyptr2);
+								end else
+									file_encode_2dimm(@binary_data,keyptr2);
+							 end;
+{decode2}		3: begin
+								Call('progressform.panel1.caption','Batch processing: '+
+											inttostr(i)+' of '+
+											inttostr(batchForm.listbox1.items.Count)+' done');
+								if batchForm.CheckBox11.Checked then
+									DynProc(@binary_data, dp_decode2)
+								else
+									file_decode_2dimm(@binary_data,keyptr2);
+							 end;
+{frequency}	4: begin
+								Call('progressform.panel1.caption','Batch processing: '+
+											inttostr(i)+' of '+
+											inttostr(batchForm.listbox1.items.Count)+' done');
+								frequence := Frequency_Analysis(@binary_data);
+								binary_data:='';
+								for I2 := 0 to 255 do
+									if batchForm.CheckBox7.Checked then
+										binary_data := binary_data + inttostr(i2)+' '+inttostr(frequence[i2]) + #$0D + #$0A
+									else
+										binary_data := binary_data + inttostr(frequence[i2]) + #$0D + #$0A;
+								FileName := FileName + '.txt';
+							 end;
+						end;
+						if batchForm.CheckBox5.Checked then
+							save_file(FileName,True)
+						else begin
+							if batchForm.CheckBox4.Checked then begin
+								FileName := IncludeTrailingBackSlash(batchForm.Edit1.Text) +
+										StringReplace(FileName,IncludeTrailingBackSlash(TopDir),'',[]);
+								ForceDirectories(ExtractFilePath(FileName));
+							end
+							else
+							FileName := IncludeTrailingBackSlash(batchForm.Edit1.Text)+
+									ExtractFileName(FileName);
+							if (FileExists(FileName) and (not batch_overwrite)) then
+								case batchForm.ComboBox1.ItemIndex of
+									0:;
+									1: begin
+											Call('messagedlg#overwrite',FileName);
+											case MessageDlgResult of
+													6:	;
+													7:	begin inc(i); Continue; end;
+													10: batch_overwrite:=true;
+											end;
+										 end;
+									2: begin inc(i); Continue; end;
+									3: begin
+											i2:=0; tmp := FileName;
+											while(FileExists(FileName)) do begin
+												FileName := ExtractFilePath(tmp);
+												FileName := FileName + ExtractFileNameWithoutExt(tmp);
+												FileName := FileName + ' (' + inttostr(i2)+')'+ExtractFileExt(tmp);
+												inc(i2);
+											end;
+										end;
+									end;
+							save_file(FileName,True);
+							if batchForm.CheckBox3.Checked then
+								SetFileTimes(FileName,FileTimes);
+						end;
+						inc(i);
+					end;
+				end;
+		if batchForm.ComboBox2.ItemIndex = 1 then
+			Call('shellexecute#explore',ExtractFileDir(FileName));
+		Call('batchForm.enable','');
+		Call('batchForm.show','');
+		if batchForm.CheckBox6.Checked then
+			synchronize(batchform.Close)
+end else
+{$ENDREGION}
+
+{#region large files}{$REGION}
+if ToDo = 'large_file' then  //Max file size: 8192Gb
+begin
+	FileName := Trim(batchForm.Edit2.Text);
+	SaveName := Trim(batchForm.Edit3.Text);
+
+	if (FileName = SaveName) and (batchForm.ListBox3.ItemIndex <> 4) then begin
+		Call('messageDlg#warning','Исходный файл не быть перезаписан!'+#$0D+#$0A+
+															'Укажите другой путь для сохранения.');
+		goto _exit;
+	end;
+
+	if batchForm.ListBox3.ItemIndex = 4 then //(freq analysis)
+		SaveName := SaveName + '.txt';
+
+	if FileExists(SaveName) then begin
+		Call('messagedlg#overwrite',SaveName);
+		if messageDlgResult = 7 then begin
+		 goto _exit;
+		end;
+	end;
+
+	Call('batchForm.hide','');
+	FileStream1 := TFileStream.Create(FileName,fmOpenRead);
+	FileStream2 := TFileStream.Create(SaveName,fmCreate);
+	_FileSize := FileStream1.Size;
+	case batchForm.ListBox3.ItemIndex of
+		0:	begin {encode}
+					Call('progressform.panel1.caption','Big File Processing (encode)');
+					invert(keyptr); //Turbo mode forced here
+					i64	:= Trunc(_fileSize / _64Mb); //count of 64Mb blocks
+					setLength(binary_data, _64Mb);
+
+					//1-st pass: large 64Mb block
+					blockSize := _64Mb;
+					i264 := 0;
+					while I264 < i64 do begin
+						for I3 := 0 to 16383 do begin
+							FileStream1.Read(buf,4096);
+							for I4 := 0 to 4095 do
+								binary_data[I3*4096 + i4 + 1]:=chr(buf[i4]);
+							self.progress := self.progress + (4096 / 3 / _FileSize);
+						end;
+
+						file_decode(@binary_data,keyptr);
+						self.progress := self.progress + (_64Mb / 3 / _FileSize);
+
+						for I3 := 0 to 16383 do begin
+							for I4 := 0 to 4095 do
+								buf[i4] := ord(binary_data[I3*4096 + i4 + 1]);
+							FileStream2.Write(buf,4096);
+							self.progress := self.progress + (4096 / 3 / _FileSize);
+						end;
+						inc(i264);
+					end;
+
+					//2-nd pass: 4Kb blocks
+					i64:= _FileSize - Trunc(_FileSize/ _64Mb) * _64Mb	;
+					i64:= Trunc(i64 / 4096); // count of 4 Kb blocks
+					blockSize := i64*4096;
+					setLength(binary_data, i64*4096);
+					i264 := 0;
+					while I264 < i64 do begin
+						FileStream1.Read(buf,4096);
+						for I4 := 0 to 4095 do
+							binary_data[I264*4096 + i4 + 1]:=chr(buf[i4]);
+						self.progress := self.progress + 4096 / _FileSize / 3;
+						inc(i264);
+					end;
+
+					file_decode(@binary_data,keyptr);
+					self.progress := self.progress + i64 * 4096 / 3 / _FileSize;
+
+					i264 := 0;
+					while I264 < i64 do begin
+						for I4 := 0 to 4095 do
+							buf[i4] := ord(binary_data[I264*4096 + i4 + 1]);
+						FileStream2.Write(buf,4096);
+						self.progress := self.progress + 4096 / _FileSize / 3;
+						inc(i264);
+					end;
+
+					//3-rd pass: last bytes...
+					i := _FileSize - Trunc(_FileSize / 4096) * 4096; //count last bytes
+					blockSize := i;
+					SetLength(binary_data,I);
+					FileStream1.Read(buf,i);
+					for I4 := 0 to I - 1 do
+						binary_data[i4 + 1] := chr(buf[i4]);
+
+					file_decode(@binary_data,keyptr);
+
+					for I4 := 0 to I - 1 do
+						buf[i4] := ord(binary_data[i4 + 1]);
+					FileStream2.Write(buf, I);
+					invert(keyptr);
+				end;
+		1: begin {decode}
+					Call('progressform.panel1.caption','Big File Processing (decode)');
+					i64	:= Trunc(_fileSize / _64Mb); //count of 64Mb blocks
+					setLength(binary_data, _64Mb);
+
+					//1-st pass: large 64Mb block
+					blockSize := _64Mb;
+					i264 := 0;
+					while I264 < i64 do begin
+						for I3 := 0 to 16383 do begin
+							FileStream1.Read(buf,4096);
+							for I4 := 0 to 4095 do
+								binary_data[I3*4096 + i4 + 1]:=chr(buf[i4]);
+							self.progress := self.progress + (4096 / 3 / _FileSize);
+						end;
+
+						file_decode(@binary_data,keyptr);
+						self.progress := self.progress + (_64Mb / 3 / _FileSize);
+
+						for I3 := 0 to 16383 do begin
+							for I4 := 0 to 4095 do
+								buf[i4] := ord(binary_data[I3*4096 + i4 + 1]);
+							FileStream2.Write(buf,4096);
+							self.progress := self.progress + (4096 / 3 / _FileSize);
+						end;
+						inc(i264);
+					end;
+
+					//2-nd pass: 4Kb blocks
+					i64:= _FileSize - Trunc(_FileSize/ _64Mb) * _64Mb;
+					i64:= Trunc(i64 / 4096); // count of 4 Kb blocks
+					blockSize := i64*4096;
+					setLength(binary_data, i64*4096);
+					i264 := 0;
+					while I264 < i64 do begin
+						FileStream1.Read(buf,4096);
+						for I4 := 0 to 4095 do
+							binary_data[I264*4096 + i4 + 1]:=chr(buf[i4]);
+						self.progress := self.progress + 4096 / _FileSize / 3;
+						inc(i264);
+					end;
+
+					file_decode(@binary_data,keyptr);
+					self.progress := self.progress + i64 * 4096 / 3 / _FileSize;
+
+					i264 := 0;
+					while I264 < i64 do begin
+						for I4 := 0 to 4095 do
+							buf[i4] := ord(binary_data[I264*4096 + i4 + 1]);
+						FileStream2.Write(buf,4096);
+						self.progress := self.progress + 4096 / _FileSize / 3;
+						inc(i264);
+					end;
+
+					//3-rd pass: last bytes...
+					i := _FileSize - Trunc(_FileSize / 4096) * 4096; //count last bytes
+					blockSize := i;
+					SetLength(binary_data,I);
+					FileStream1.Read(buf,i);
+					for I4 := 0 to I - 1 do
+						binary_data[i4 + 1] := chr(buf[i4]);
+
+					file_decode(@binary_data,keyptr);
+
+					for I4 := 0 to I - 1 do
+						buf[i4] := ord(binary_data[i4 + 1]);
+					FileStream2.Write(buf, I);
+				end;
+		2: begin {encode2}
+					Call('progressform.panel1.caption','Big File Processing (encode two-dimensional)');
+					invert(keyptr2); //Turbo mode forced here
+					i64	:= Trunc(_fileSize / _64Mb); //count of 64Mb blocks
+					setLength(binary_data, _64Mb);
+
+					//1-st pass: large 64Mb block
+					blockSize := _64Mb;
+					i264 := 0;
+					while I264 < i64 do begin
+						for I3 := 0 to 16383 do begin
+							FileStream1.Read(buf,4096);
+							for I4 := 0 to 4095 do
+								binary_data[I3*4096 + i4 + 1]:=chr(buf[i4]);
+							self.progress := self.progress + (4096 / 3 / _FileSize);
+						end;
+
+						file_decode_2dimm(@binary_data,keyptr2,i264*_64Mb, 0);{ TODO : With dyn key generation }
+						self.progress := self.progress + (_64Mb / 3 / _FileSize);
+
+						for I3 := 0 to 16383 do begin
+							for I4 := 0 to 4095 do
+								buf[i4] := ord(binary_data[I3*4096 + i4 + 1]);
+							FileStream2.Write(buf,4096);
+							self.progress := self.progress + (4096 / 3 / _FileSize);
+						end;
+						inc(i264);
+					end;
+
+					//2-nd pass: 4Kb blocks
+					i64:= _FileSize - Trunc(_FileSize/_64Mb) * _64Mb;
+					i64:= Trunc(i64 / 4096); // count of 4 Kb blocks
+					blockSize := i64*4096;
+					setLength(binary_data, i64*4096);
+					i264 := 0;
+					while I264 < i64 do begin
+						FileStream1.Read(buf,4096);
+						for I4 := 0 to 4095 do
+							binary_data[I264*4096 + i4 + 1]:=chr(buf[i4]);
+						self.progress := self.progress + 4096 / _FileSize / 3;
+						inc(i264);
+					end;
+
+					file_decode_2dimm(@binary_data,keyptr2,Trunc(_fileSize/_64Mb)*_64Mb, 0);
+					self.progress := self.progress + i64 * 4096 / 3 / _FileSize;
+
+					i264 := 0;
+					while I264 < i64 do begin
+						for I4 := 0 to 4095 do
+							buf[i4] := ord(binary_data[I264*4096 + i4 + 1]);
+						FileStream2.Write(buf,4096);
+						self.progress := self.progress + 4096 / _FileSize / 3;
+						inc(i264);
+					end;
+
+					//3-rd pass: last bytes...
+					i := _FileSize - Trunc(_FileSize / 4096) * 4096; //count last bytes
+					blockSize := i;
+					SetLength(binary_data,I);
+					FileStream1.Read(buf,i);
+					for I4 := 0 to I - 1 do
+						binary_data[i4 + 1] := chr(buf[i4]);
+
+					file_decode_2dimm(@binary_data,keyptr2, _FileSize - i, 0);
+
+					for I4 := 0 to I - 1 do
+						buf[i4] := ord(binary_data[i4 + 1]);
+					FileStream2.Write(buf, I);
+					invert(keyptr2);
+				end;
+		3: begin {decode2}
+					Call('progressform.panel1.caption','Big File Processing (decode two-dimensional)');
+					i64	:= Trunc(_fileSize / _64Mb); //count of 64Mb blocks
+					setLength(binary_data, _64Mb);
+
+					//1-st pass: large 64Mb block
+					blockSize := _64Mb;
+					i264 := 0;
+					while I264 < i64 do begin
+						for I3 := 0 to 16383 do begin
+							FileStream1.Read(buf,4096);
+							for I4 := 0 to 4095 do
+								binary_data[I3*4096 + i4 + 1]:=chr(buf[i4]);
+							self.progress := self.progress + (4096 / 3 / _FileSize);
+						end;
+
+						file_decode_2dimm(@binary_data,keyptr2,i264*_64Mb, 0);
+						self.progress := self.progress + (_64Mb / 3 / _FileSize);
+
+						for I3 := 0 to 16383 do begin
+							for I4 := 0 to 4095 do
+								buf[i4] := ord(binary_data[I3*4096 + i4 + 1]);
+							FileStream2.Write(buf,4096);
+							self.progress := self.progress + (4096 / 3 / _FileSize);
+						end;
+						inc(i264);
+					end;
+
+					//2-nd pass: 4Kb blocks
+					i64:= _FileSize - Trunc(_FileSize/_64Mb) * _64Mb;
+					i64:= Trunc(i64 / 4096); // count of 4 Kb blocks
+					blockSize := i64*4096;
+					setLength(binary_data, i64*4096);
+					i264 := 0;
+					while I264 < i64 do begin
+						FileStream1.Read(buf,4096);
+						for I4 := 0 to 4095 do
+							binary_data[I264*4096 + i4 + 1]:=chr(buf[i4]);
+						self.progress := self.progress + 4096 / _FileSize / 3;
+						inc(i264);
+					end;
+
+					file_decode_2dimm(@binary_data,keyptr2,Trunc(_fileSize/_64Mb)*_64Mb, 0);
+					self.progress := self.progress + i64 * 4096 / 3 / _FileSize;
+
+					i264 := 0;
+					while I264 < i64 do begin
+						for I4 := 0 to 4095 do
+							buf[i4] := ord(binary_data[I264*4096 + i4 + 1]);
+						FileStream2.Write(buf,4096);
+						self.progress := self.progress + 4096 / _FileSize / 3;
+						inc(i264);
+					end;
+
+					//3-rd pass: last bytes...
+					i := _FileSize - Trunc(_FileSize / 4096) * 4096; //count last bytes
+					blockSize := i;
+					SetLength(binary_data,I);
+					FileStream1.Read(buf,i);
+					for I4 := 0 to I - 1 do
+						binary_data[i4 + 1] := chr(buf[i4]);
+
+					file_decode_2dimm(@binary_data,keyptr2, _FileSize - i, 0);
+
+					for I4 := 0 to I - 1 do
+						buf[i4] := ord(binary_data[i4 + 1]);
+					FileStream2.Write(buf, I);
+				end;
+		4: begin {frequency analysis}
+					Call('progressform.panel1.caption','Big File Processing (frequency analysis)');
+					for I := 0 to 255 do begin
+						unit38.frequence[i] := 0;
+									 frequence[i]	:= 0;
+					end;
+					i64	:= Trunc(_fileSize / _64Mb); //count of 64Mb blocks
+					setLength(binary_data, _64Mb);
+
+					//1-st pass: large 64Mb block
+					blockSize := _64Mb;
+					i264 := 0;
+					while I264 < i64 do begin
+						for I3 := 0 to 16383 do begin
+							FileStream1.Read(buf,4096);
+							for I4 := 0 to 4095 do
+								binary_data[I3*4096 + i4 + 1]:=chr(buf[i4]);
+							self.progress := self.progress + (4096 / _FileSize);
+						end;
+
+						frequence := Frequency_Analysis(@binary_data);
+						for I := 0 to 255 do
+							unit38.frequence[i] := unit38.frequence[i] + frequence[i];
+
+						//self.progress := self.progress + (_64Mb /3 / _FileSize);
+						inc(i264);
+					end;
+
+					//2-nd pass: 4Kb blocks
+					i64:= _FileSize - Trunc(_FileSize/_64Mb) * _64Mb;
+					i64:= Trunc(i64 / 4096); // count of 4 Kb blocks
+					blockSize := i64*4096;
+					setLength(binary_data, i64*4096);
+					i264 := 0;
+					while I264 < i64 do begin
+						FileStream1.Read(buf,4096);
+						for I4 := 0 to 4095 do
+							binary_data[I264*4096 + i4 + 1]:=chr(buf[i4]);
+						self.progress := self.progress + 4096 / _FileSize / 2;
+						inc(i264);
+					end;
+
+					frequence := Frequency_Analysis(@binary_data);
+					for I := 0 to 255 do
+						unit38.frequence[i] := unit38.frequence[i] + frequence[i];
+
+					self.progress := self.progress + i64 * 4096 / 2 / _FileSize;
+
+					//3-rd pass: last bytes...
+					i := _FileSize - Trunc(_FileSize / 4096) * 4096; //count last bytes
+					blockSize := i;
+					SetLength(binary_data,I);
+					FileStream1.Read(buf,i);
+					for I4 := 0 to I - 1 do
+						binary_data[i4 + 1] := chr(buf[i4]);
+
+					frequence := Frequency_Analysis(@binary_data);
+					for I := 0 to 255 do
+						unit38.frequence[i] := unit38.frequence[i] + frequence[i];
+
+					Tmp := 'Frequency analysis.'+#$0D+#$0A+
+								 'File Name: '+FileName+#$0D+#$0A+
+								 'File Size: '+inttostr(_FileSize)+' bytes'+#$0D+#$0A;
+					i64 := $7FFFFFFFFFFFFFFF;
+					for I := 0 to 255 do
+						if i64 > unit38.frequence[i] then begin
+							i64 := unit38.frequence[i];
+							oneByte := i;
+						end;
+					Tmp := Tmp + 'Min: ' + inttostr(i64) + ' (#' + inttohex(oneByte,2) + ')' + #$0D+#$0A;
+					i264:= i64;
+					i64 := 0;
+					for I := 0 to 255 do
+						if i64 < unit38.frequence[i] then begin
+							i64 := unit38.frequence[i];
+							oneByte := i;
+						end;
+					Tmp := Tmp + 'Max: ' + inttostr(i64) + ' (#' + inttohex(oneByte,2) + ')' + #$0D+#$0A;
+					ext := (i64 + i264) / 2;
+					Tmp := Tmp + 'Mean: ' + floattostrf(ext,ffgeneral,30,20) + #$0D+#$0A;
+					ext := 0;
+					for I := 0 to 255 do
+						ext := ext + unit38.frequence[i] / 256;
+					Tmp := Tmp + 'Average: ' + floattostrf(ext,ffgeneral,30,20) + #$0D+#$0A+#$0D+#$0A;
+					for I := 0 to length(tmp) - 1 do
+						buf[i] := ord(tmp[i+1]);
+
+					FileStream2.write(buf, length(tmp));
+					for I := 0 to 255 do begin
+						if batchForm.CheckBox8.Checked then
+							Tmp := inttostr(i)+' '+inttostr(unit38.frequence[i])+#$0D+#$0A
+						else
+              Tmp := inttostr(unit38.frequence[i])+#$0D+#$0A;
+						for I2 := 0 to length(tmp) - 1 do
+							buf[i2] := ord(tmp[i2+1]);
+						FileStream2.write(buf, length(tmp));
+					end;
+					
+					Call('form39.draw_graph','');
+				end;
+			end;
+			self.progress := 1;
+			FileStream1.Free;
+			FileStream2.Free;
+			binary_data := '';
+			if batchForm.ComboBox2.ItemIndex = 1 then
+				Call('shellexecute#explore',ExtractFileDir(SaveName));
+			Call('batchForm.enable','');
+			Call('batchForm.show','');
+			if batchForm.CheckBox6.Checked then
+				synchronize(batchform.Close)
+end else
+{$ENDREGION}
+
+{#region misc.}{$REGION}
+if Todo = 'multifart' then
+begin
+	SaveName := Params;
+	Call('progressForm.panel1.caption','One per data');
+	i2 := length(keyptr2^);
+	blockSize := length(binary_data);
+	self.progress := 0;
+	for I := 0 to i2 - 1 do begin
+		Call('progressForm.panel1.caption','One per data ('+inttostr(i)+' of '+inttostr(i2)+')');
+		keyptr^ := keyptr2^[i];
+		if batchForm.CheckBox9.Checked then begin
+			file_decode(pointer, keyptr);
+			Save_File(ExtractFilePath(saveName) +
+								ExtractFileNameWithoutExt(saveName) +
+								' (' +
+								inttostr(i) +
+								')' +
+								ExtractFileExt(saveName), true);
+			invert(keyptr);
+			file_decode(pointer, keyptr);
+			invert(keyptr);
+		end else begin
+			invert(keyptr);
+			file_decode(pointer, keyptr);
+			invert(keyptr);
+			Save_File(ExtractFilePath(saveName) +
+								ExtractFileNameWithoutExt(saveName) +
+								' (' +
+								inttostr(i) +
+								')' +
+								ExtractFileExt(saveName), true);
+			file_decode(pointer, keyptr);
+		end;
+
+		self.progress := self.progress + 1 / i2;
+	end;
+	self.progress := 1;
+
+	Call('batchForm.enable','');
+	Call('batchForm.show','');
+	if batchForm.ComboBox2.ItemIndex = 1 then
+		Call('shellexecute#explore',ExtractFileDir(SaveName));
+	if batchForm.CheckBox6.Checked then
+		synchronize(batchform.Close)
+
+end else
+if Todo = 'warp' then
+begin
+	SaveName := Params;
+	Call('progressForm.panel1.caption','Warp analyze');
+	i2 := length(keyptr2^);
+	blockSize := length(binary_data);
+	self.progress := 0;
+	while true do begin
+		Call('progressForm.panel1.caption','Warp analyze ('+inttostr(i2)+')');
+		if batchForm.CheckBox9.Checked then begin
+			file_decode_2dimm(pointer, keyptr2);
+			Save_File(ExtractFilePath(saveName) +
+								ExtractFileNameWithoutExt(saveName) +
+								' (' +
+								inttostr(i2) +
+								')' +
+								ExtractFileExt(saveName), true);
+			invert(keyptr2);
+			file_decode_2dimm(pointer, keyptr2);
+			invert(keyptr2);
+		end else begin
+			invert(keyptr2);
+			file_decode_2dimm(pointer, keyptr2);
+			invert(keyptr2);
+			Save_File(ExtractFilePath(saveName) +
+								ExtractFileNameWithoutExt(saveName) +
+								' (' +
+								inttostr(i2) +
+								')' +
+								ExtractFileExt(saveName), true);
+			file_decode_2dimm(pointer, keyptr2);
+		end;
+		if batchForm.checkbox10.checked then begin
+			i2 := i2 div 2;
+			setLength(keyptr2^, i2);
+			if i2 <= 0 then
+				break;
+		end else begin
+			dec(i2);
+			if i2 <= 0 then
+			 break;
+			setLength(keyptr2^, i2);
+		end;
+		
+		self.progress := self.progress + 1 / i2;
+	end;
+	self.progress := 1;
+
+	Call('batchForm.enable','');
+	Call('batchForm.show','');
+	if batchForm.ComboBox2.ItemIndex = 1 then
+		Call('shellexecute#explore',ExtractFileDir(SaveName));
+	if batchForm.CheckBox6.Checked then
+		synchronize(batchform.Close)
+
+end else
+{$ENDREGION}
+
+	MessageBox(	form38.Handle,
+							PChar('Unknown function "'+ ToDo +'"'),
+							PChar('Error!'),
+							MB_ICONSTOP+MB_OK);
+
+_exit: begin
+	VCLThread.Terminate;
+	synchronize(progressform.Close);
+	Call('batchForm.enable','');
+	if (batchForm.Visible) and (not batchForm.CheckBox6.Checked) then begin
+		Call('batchForm.show','');
+	end;
+	self.Todo := '';
+end;
+end;
+{$ENDREGION}
+
+{#region TVCLThread.Execute}{$REGION}
+procedure TVCLThread.Execute;
+var x0,progress: extended;
+		CycleCnt		:	int64;
+begin
+	x0 := 0;
+	CycleCnt := 0;
+	while true do
+	begin
+		if terminated then
+			Break;
+	try begin
+	if DataThread.Todo = 'large_file' then begin
+		progress := (
+									DataThread.Progress	 *
+									DataThread._FileSize +
+									encoder.progress 		 *
+									DataThread.blockSize /
+									DataThread._FileSize
+								)                      /
+								DataThread._FileSize;
+		DataThread.speed := (progress - x0) / (UpdateInterval / 1000);
+		x0 := progress;
+	end else
+	if (DataThread.Todo = 'encode_dyn') or (DataThread.Todo = 'decode_dyn') then
+	begin
+		if CycleCnt mod 4 = 0 then begin
+			DataThread.speed := (DataThread.Progress - x0) / (UpdateInterval / 1000) / 4;
+			x0 := DataThread.Progress;
+		end;
+	end else
+	begin
+		progress := encoder.progress / (DataThread._FileSize+0.01);
+		DataThread.speed := (progress - x0) / (UpdateInterval / 1000);
+		x0 := progress;
+	end;
+	end;
+	except
+	end;
+		Synchronize(ProgressForm.reFresh);
+		inc(CycleCnt);
+		sleep(UpdateInterval);
+	end;
+end;
+{$ENDREGION}
+
+{#region Synchronized Calls}{$REGION}
+procedure TDataThread.Call(func: string; params: string);
+begin
+	func := LowerCase(func);
+	id := -1;
+
+	if func =	'batchform.enable' 						then id := 7;
+	if func =	'batchform.hide' 							then id := 10;
+	if func =	'batchform.show' 							then id := 11;
+	if func =	'form38.richedit1.lines.add' 	then begin self.params :=params; id := 6; end;
+	if func =	'form39.draw_graph'					  then id := 1;
+	if func =	'form39.label39.caption'      then begin self.params :=params; id := 4; end;
+	if func =	'lock_controls'							  then id := 2;
+	if func =	'progressform.panel1.caption' then begin self.params :=params; id := 5; end;
+	if func =	'unlock_controls'             then id := 3;
+	if func = 'form38.cleanup_form' 				then id := 13;
+	if func = 'messagedlg#overwrite' 				then begin self.params :=params; id := 8; end;
+	if func = 'messagedlg#readerror' 				then begin self.params :=params; id := 9; end;
+	if func = 'messagedlg#warning' 					then begin self.params :=params; id := 12; end;
+	if func = 'shellexecute#explore' 				then begin self.params :=params; id := 14; end;
+	if func = 'trackbar.perform(onchange)'  then id := 0;
+
+	if id = -1 then
+		MessageBox(	form38.Handle,
+								PChar('Unknown function "'+ func +'"'),
+								PChar('Error!'),
+								MB_ICONSTOP+MB_OK);
+	Synchronize(UpdateVCL);
+end;
+
+procedure TDataThread.UpdateVCL;
+begin
+	case id of
+		0: if trackbar <> nil then begin
+			trackbar.position:=0; //perform trackbar.onChange
+			trackbar.Perform(256,38,0);
+			trackbar.Perform(257,38,0);
+		end;
+		1: begin
+				form39.draw_Graph(unit38.frequence);
+		end;
+		2: begin
+			form38.Enabled:=false;
+			form39.Enabled:=false;
+			form39.lock;
+			batchForm.Enabled:=false;
+			form39.Button1.Enabled := false;
+			form39.Button2.Enabled := false;
+			form39.Button3.Enabled := false;
+			form39.Button4.Enabled := false;
+			form38.N1.Enabled := false;
+			form38.N8.Enabled := false;
+			form38.N13.Enabled := false;
+		end;
+		3: begin
+			form38.Enabled:=true;
+			form39.Enabled:=true;
+			form39.unlock;
+			batchForm.Enabled:=true;
+			form39.Button1.Enabled := true;
+			form39.Button2.Enabled := true;
+			form39.Button3.Enabled := true;
+			form39.Button4.Enabled := true;
+			form38.N1.Enabled := true;
+			form38.N8.Enabled := true;
+			form38.N13.Enabled := true;
+		end;
+		4: form39.label39.caption:=params;
+		5: progressForm.Panel1.Caption:=params;
+		6: if params <> '' then
+					form38.RichEdit1.Lines.Add(params)
+			 else begin
+					form38.RichEdit1.Lines.Clear;
+					form38.RichEdit1.Lines[0]:=binary_data;
+       end;
+		7: batchForm.Enabled:=true;
+		8: MessageDlgResult:=MessageDlg('Файл "'+ params +'"'+'существует. Перезаписать?',
+																		mtConfirmation,
+																		[mbYes,mbNo,mbYesToAll],0);
+		9: MessageDlgResult:=MessageDlg('Ошибка чтения "'+ params +'"',
+																		mtError,
+																		[mbAbort,mbRetry,mbIgnore],0);
+		10:batchForm.Hide;
+		11:batchForm.Show;
+		12:MessageDlgResult:=MessageDlg(params, mtWarning, [mbOk], 0);
+		13:form38.Cleanup_form;
+		14:shellExecute (form38.Handle, 'explore',PChar(params), nil, PChar(params), SW_SHOWNORMAL);
+	end;
+end;
+
+{$ENDREGION}
+
+procedure run(Todo: string);
+begin
+	form38.Enabled						:=	false;
+	form39.Enabled						:=	false;
+	batchForm.Enabled					:=	false;
+	ProgressForm.show;
+	DataThread 								:= 	TDataThread.Create(True);
+	DataThread.Todo						:=	Todo;
+	DataThread.FreeonTerminate:=	true;
+	DataThread.Resume;
+end;
+
+procedure run(Todo,Params: string);
+begin
+	form38.Enabled						:=	false;
+	form39.Enabled						:=	false;
+	batchForm.Enabled					:=	false;
+	ProgressForm.show;
+	DataThread 								:= 	TDataThread.Create(True);
+	DataThread.Todo						:=	Todo;
+	DataThread.params					:=	Params;
+	DataThread.FreeonTerminate:=	true;
+	DataThread.Resume;
+end;
+
+end.

@@ -1,0 +1,130 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<namespace name="encoder">
+  <array name="TByteArray">
+    <element type="Byte" />
+  </array>
+  <pointer name="PByteArray" type="TByteArray" indircnt="1" />
+  <array name="Tkey" low="0" high="255">
+    <element type="Byte" />
+  </array>
+  <pointer name="Pkey" type="Tkey" indircnt="1" />
+  <array name="Tkey2">
+    <array name="Tkey2" alias="Tkey" namespace="encoder" low="0" high="255">
+      <element type="Byte" />
+    </array>
+  </array>
+  <pointer name="Pkey2" type="Tkey2" indircnt="1" />
+  <array name="TFrequency" low="0" high="255">
+    <element type="Int64" />
+  </array>
+  <variable name="progress" type="Integer" />
+  <procedure name="file_encode" visibility="private">
+    <parameters>
+      <parameter name="data" type="PAnsiString" />
+      <parameter name="key" type="Pkey" />
+    </parameters>
+  </procedure>
+  <procedure name="file_decode" visibility="private" procflags="overload">
+    <parameters>
+      <parameter name="data" type="PAnsiString" />
+      <parameter name="key" type="Pkey" />
+    </parameters>
+  </procedure>
+  <procedure name="file_encode_2dimm" visibility="private">
+    <parameters>
+      <parameter name="data" type="PAnsiString" />
+      <parameter name="key" type="Pkey2" />
+    </parameters>
+  </procedure>
+  <procedure name="file_decode_2dimm" visibility="private" procflags="overload">
+    <parameters>
+      <parameter name="data" type="PAnsiString" />
+      <parameter name="key" type="Pkey2" />
+    </parameters>
+  </procedure>
+  <procedure name="file_decode_2dimm" visibility="private" procflags="overload">
+    <parameters>
+      <parameter name="data" type="PAnsiString" />
+      <parameter name="key" type="Pkey2" />
+      <parameter name="initKeyOffset" type="Int64" />
+      <parameter name="initDataOffset" type="Int64" />
+    </parameters>
+  </procedure>
+  <procedure name="invert" visibility="private" procflags="overload">
+    <parameters>
+      <parameter name="key" type="Pkey" />
+    </parameters>
+  </procedure>
+  <procedure name="invert" visibility="private" procflags="overload">
+    <parameters>
+      <parameter name="key" type="Pkey2" />
+    </parameters>
+  </procedure>
+  <function name="volidate" visibility="private" procflags="overload">
+    <parameters>
+      <parameter name="key" type="Pkey" />
+      <retval type="string" />
+    </parameters>
+  </function>
+  <function name="volidate" visibility="private" procflags="overload">
+    <parameters>
+      <parameter name="key" type="Pkey2" />
+      <retval type="Boolean" />
+    </parameters>
+  </function>
+  <function name="volidate_text" visibility="private" procflags="overload">
+    <parameters>
+      <parameter name="key" type="Pkey" />
+      <retval type="Boolean" />
+    </parameters>
+  </function>
+  <function name="volidate_text" visibility="private" procflags="overload">
+    <parameters>
+      <parameter name="key" type="Pkey2" />
+      <retval type="Boolean" />
+    </parameters>
+  </function>
+  <function name="TransposCnt" visibility="private">
+    <parameters>
+      <parameter name="key" type="Pkey" />
+      <retval type="Integer" />
+    </parameters>
+  </function>
+  <function name="Frequency_analysis" visibility="private">
+    <parameters>
+      <parameter name="data" type="PAnsiString" />
+      <retval type="TFrequency" />
+    </parameters>
+  </function>
+  <function name="IntToHex" visibility="private">
+    <parameters>
+      <parameter name="Value" type="Int64" />
+      <parameter name="Digits" type="Integer" />
+      <retval type="string" />
+    </parameters>
+  </function>
+  <procedure name="CvtInt64" visibility="private">
+  </procedure>
+  <function name="StrToHex" visibility="private">
+    <parameters>
+      <parameter name="text" type="string" />
+      <retval type="string" />
+    </parameters>
+  </function>
+  <function name="encode" visibility="private">
+    <parameters>
+      <parameter name="input" type="string" />
+      <parameter name="key" type="Pkey" />
+      <parameter name="grouping" type="Integer" />
+      <parameter name="separator" type="string" />
+      <retval type="string" />
+    </parameters>
+  </function>
+  <function name="decode" visibility="private">
+    <parameters>
+      <parameter name="input" type="string" />
+      <parameter name="key" type="Pkey" />
+      <retval type="string" />
+    </parameters>
+  </function>
+</namespace>

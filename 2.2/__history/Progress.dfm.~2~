@@ -1,0 +1,75 @@
+object ProgressForm: TProgressForm
+  Left = 0
+  Top = 0
+  BorderStyle = bsNone
+  Caption = 'ProgressForm'
+  ClientHeight = 133
+  ClientWidth = 318
+  Color = clBtnFace
+  DefaultMonitor = dmMainForm
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  PopupMode = pmExplicit
+  PopupParent = Form38.Owner
+  Position = poOwnerFormCenter
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Panel1: TPanel
+    Left = 0
+    Top = 0
+    Width = 318
+    Height = 19
+    Align = alTop
+    Alignment = taLeftJustify
+    BevelKind = bkFlat
+    BevelOuter = bvNone
+    Color = clSkyBlue
+    TabOrder = 0
+    ExplicitTop = -6
+    object SpeedButton1: TSpeedButton
+      Left = 299
+      Top = 0
+      Width = 15
+      Height = 15
+      Glyph.Data = {
+        CE000000424DCE0000000000000076000000280000000B0000000B0000000100
+        0400000000005800000000000000000000001000000000000000F0F0F0000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        0000000000000000000000000000000000000000000000000000000000000000
+        BF01000000000000BF01000000000000BF01000001000000BF01000011100000
+        BF01000111110000BF01001111111000BF01000000000000BF01000000000000
+        BF01000000000000BF01000000000000BF01}
+    end
+  end
+  object Panel2: TPanel
+    Left = 0
+    Top = 19
+    Width = 318
+    Height = 114
+    Align = alClient
+    BevelEdges = [beLeft, beRight, beBottom]
+    BevelInner = bvLowered
+    BevelKind = bkFlat
+    Color = 13809326
+    Ctl3D = True
+    ParentCtl3D = False
+    TabOrder = 1
+    object Panel3: TPanel
+      Left = 16
+      Top = 56
+      Width = 256
+      Height = 15
+      TabOrder = 0
+      object Image1: TImage
+        Left = 0
+        Top = 0
+        Width = 256
+        Height = 15
+      end
+    end
+  end
+end

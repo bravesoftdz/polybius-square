@@ -1,0 +1,76 @@
+unit About;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+	Dialogs, ComCtrls, GIFImage, ExtCtrls, StdCtrls, Buttons;
+
+type
+  TAboutForm = class(TForm)
+    Image1: TImage;
+    SpeedButton1: TSpeedButton;
+    procedure SpeedButton1Click(Sender: TObject);
+    procedure FormHide(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormDestroy(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+		procedure FormCreate(Sender: TObject);
+	private
+		
+	public
+		gif : TGIFImage;
+	end;
+var
+	AboutForm: TAboutForm;
+implementation
+
+
+
+{$R *.dfm}
+
+procedure TAboutForm.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+gif.PaintPause;
+end;
+
+procedure TAboutForm.FormCreate(Sender: TObject);
+var Stream: TResourceStream;
+begin
+	gif := TGIFImage.Create;
+	gif.DrawOptions := [goAnimate,goLoop,goAsync,goDirectDraw];
+	gif.AnimationSpeed := 1000;
+	Stream := TResourceStream.Create(hInstance, 'logo', 'GIF');
+	try
+		gif.LoadFromStream(stream);
+	//gif.LoadFromFile(ExtractFilePath(application.ExeName)+'logo.gif');
+	finally
+		stream.Free;
+  end;
+	Image1.Picture.Assign(gif);
+	gif.PaintStop;
+end;
+
+procedure TAboutForm.FormDestroy(Sender: TObject);
+begin
+//gif.PaintStop;
+//image1.Picture.Free;
+//gif.free;
+end;
+
+procedure TAboutForm.FormHide(Sender: TObject);
+begin
+gif.PaintStop;
+end;
+
+procedure TAboutForm.FormShow(Sender: TObject);
+begin
+gif.PaintStart;
+end;
+
+procedure TAboutForm.SpeedButton1Click(Sender: TObject);
+begin
+Close;
+end;
+
+end.

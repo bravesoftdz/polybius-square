@@ -1,0 +1,26 @@
+unit Unit40;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs;
+
+type
+  TProgressForm = class(TForm)
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  ProgressForm: TProgressForm;
+
+implementation
+
+uses Unit38;
+
+{$R *.dfm}
+
+end.

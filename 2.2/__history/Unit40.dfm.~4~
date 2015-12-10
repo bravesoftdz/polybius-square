@@ -1,0 +1,45 @@
+object ProgressForm: TProgressForm
+  Left = 0
+  Top = 0
+  BorderStyle = bsNone
+  Caption = 'ProgressForm'
+  ClientHeight = 133
+  ClientWidth = 351
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  PopupMode = pmExplicit
+  PopupParent = Form38.Owner
+  Position = poOwnerFormCenter
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Panel1: TPanel
+    Left = 0
+    Top = 0
+    Width = 351
+    Height = 17
+    Align = alTop
+    Alignment = taLeftJustify
+    BevelKind = bkFlat
+    BevelOuter = bvNone
+    Caption = 'Panel1'
+    Color = clSkyBlue
+    TabOrder = 0
+  end
+  object Panel2: TPanel
+    Left = 0
+    Top = 17
+    Width = 351
+    Height = 116
+    Align = alClient
+    BevelInner = bvLowered
+    BevelKind = bkFlat
+    Caption = 'Panel2'
+    TabOrder = 1
+    ExplicitTop = 23
+  end
+end

@@ -1,0 +1,36 @@
+unit Batch;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls;
+
+type
+	TBatchForm = class(TForm)
+  private
+    { Private declarations }
+  public
+
+  end;
+
+var
+
+{ Important: Methods and properties of objects in visual components can only be
+  used in a method called using Synchronize, for example,
+
+      Synchronize(UpdateCaption);
+
+  and UpdateCaption could look like,
+
+		procedure MyThread.UpdateCaption;
+		begin
+			Form1.Caption := 'Updated in a thread';
+		end; }
+implementation
+
+uses Unit38, Unit39, TABPGDLG, encoder;
+
+{$R *.dfm}
+
+end.

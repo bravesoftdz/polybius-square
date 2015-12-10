@@ -1,0 +1,21 @@
+program Project27;
+uses
+  Forms,
+  Unit38 in 'Unit38.pas' {Form38},
+  Unit39 in 'Unit39.pas' {Form39},
+  TABPGDLG in 'TABPGDLG.pas' {PagesDlg},
+  Unit48 in 'Unit48.pas' {Form48},
+  encoder in 'encoder.pas';
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.Title := 'Квадрат Полибия';
+//  Application.HelpFile := 'SQROOT.HLP';
+  Application.CreateForm(TForm38, Form38);
+  Application.CreateForm(TForm39, Form39);
+  Application.CreateForm(TPagesDlg, PagesDlg);
+  Application.CreateForm(TForm48, Form48);
+  Application.Run;
+end.

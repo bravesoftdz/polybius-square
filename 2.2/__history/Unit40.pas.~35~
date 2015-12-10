@@ -1,0 +1,153 @@
+unit Unit40;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+	Dialogs, ExtCtrls, Buttons, StdCtrls, Math;
+
+type
+  TProgressForm = class(TForm)
+    Image1: TImage;
+    Panel1: TPanel;
+    Panel2: TPanel;
+    Label1: TLabel;
+    Panel3: TPanel;
+    Label2: TLabel;
+    Panel4: TPanel;
+    Panel5: TPanel;
+    SpeedButton1: TSpeedButton;
+    Panel6: TPanel;
+    Label3: TLabel;
+    Label4: TLabel;
+    Label5: TLabel;
+    procedure Panel5Click(Sender: TObject);
+    procedure Panel6Click(Sender: TObject);
+    procedure SpeedButton1Click(Sender: TObject);
+    procedure Panel6MouseLeave(Sender: TObject);
+    procedure Panel6MouseEnter(Sender: TObject);
+    procedure Panel6MouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure Panel6MouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure Panel5MouseLeave(Sender: TObject);
+    procedure Panel5MouseEnter(Sender: TObject);
+    procedure Panel5MouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure Panel5MouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+		procedure drawProgressBar;
+  private
+    { Private declarations }
+  public
+    procedure reFresh;
+  end;
+
+var
+  ProgressForm: TProgressForm;
+
+implementation
+
+uses Unit38, encoder, Threads, Unit39;
+
+{$R *.dfm}
+
+procedure TProgressForm.reFresh;
+begin
+try
+if binary_data<>'' then begin
+		Label1.Caption := inttostr		(Round(progress / length(binary_data) * 100)) +' %';
+		Label3.Caption := floattostrf	(progress / Math.Power(2,20),fffixed,4,1)+' Mb';
+		Label5.Caption := floattostrf	(length(binary_data) / Math.Power(2,20),fffixed,4,1)+' Mb';
+		drawProgressBar;
+	end;
+except
+
+end;
+end;
+
+procedure TProgressForm.drawProgressBar;
+var tmp: integer;
+begin
+  with Image1 do begin
+		Canvas.Brush.Color := clWhite;
+		Canvas.FillRect(Rect(0,0,width,height));
+		Canvas.Brush.Color := $D66535;
+		tmp := Round(encoder.progress / length(binary_data) * width);
+		Canvas.FillRect(Rect(0,0,tmp,height));
+	end;
+end;
+
+procedure TProgressForm.Panel5Click(Sender: TObject);
+begin
+TerminateThread(dataThread.Handle,0);
+dataThread.Free;
+VCLThread.Terminate;
+Close;
+if batchForm.Visible then
+	batchForm.Enabled := true
+else begin
+	form38.Enabled := true;
+	form39.Enabled := true;
+end;
+end;
+
+procedure TProgressForm.Panel5MouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+Panel5.BevelOuter := bvLowered;
+end;
+
+procedure TProgressForm.Panel5MouseEnter(Sender: TObject);
+begin
+panel5.Color := $00B78071;
+end;
+
+procedure TProgressForm.Panel5MouseLeave(Sender: TObject);
+begin
+panel5.Color := $00AB786A;
+end;
+
+procedure TProgressForm.Panel5MouseUp(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+Panel5.BevelOuter := bvRaised;
+end;
+
+procedure TProgressForm.Panel6Click(Sender: TObject);
+begin
+with dataThread do
+	if Suspended then Resume
+	else 							Suspend
+end;
+
+procedure TProgressForm.Panel6MouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+Panel6.BevelOuter := bvLowered;
+end;
+
+procedure TProgressForm.Panel6MouseEnter(Sender: TObject);
+begin
+panel6.Color := $00B78071;
+end;
+
+procedure TProgressForm.Panel6MouseLeave(Sender: TObject);
+begin
+panel6.Color := $00AB786A;
+end;
+
+procedure TProgressForm.Panel6MouseUp(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+begin
+Panel6.BevelOuter := bvRaised;
+end;
+
+procedure TProgressForm.SpeedButton1Click(Sender: TObject);
+var h:HWND;
+begin
+h:= Form38.handle;
+SendMessage(h, WM_SYSCOMMAND, SC_MINIMIZE, 0);
+end;
+
+end.

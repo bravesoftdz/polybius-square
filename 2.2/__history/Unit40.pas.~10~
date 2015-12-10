@@ -1,0 +1,42 @@
+unit Unit40;
+
+interface
+
+uses
+  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, ExtCtrls, Buttons, StdCtrls;
+
+type
+  TProgressForm = class(TForm)
+    Image1: TImage;
+    Panel1: TPanel;
+    Panel2: TPanel;
+    Label1: TLabel;
+		procedure drawProgressBar;
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  ProgressForm: TProgressForm;
+
+implementation
+
+uses Unit38, encoder;
+
+{$R *.dfm}
+
+
+procedure TProgressForm.drawProgressBar;
+begin
+  with Image1 do begin
+		Canvas.Brush.Color := clWhite;
+		Canvas.FillRect(Rect(0,0,width,height));
+		Canvas.Brush.Color := clBlue;
+		Canvas.FillRect(Rect(0,0,encoder.progress,height));
+	end;
+end;
+
+end.

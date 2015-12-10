@@ -1,0 +1,68 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<namespace name="Functions">
+  <struct name="TFileTimes" packed="true">
+    <field name="CreationTime" type="_FILETIME" visibility="public" />
+    <field name="LastWriteTime" type="_FILETIME" visibility="public" />
+    <field name="LastAccessTime" type="_FILETIME" visibility="public" />
+  </struct>
+  <function name="ExtractTopLevelDir" visibility="private">
+    <parameters>
+      <parameter name="Files" type="TStrings" />
+      <retval type="string" />
+    </parameters>
+  </function>
+  <function name="ExtractFileNameWithoutExt" visibility="private">
+    <parameters>
+      <parameter name="FileName" type="string" />
+      <retval type="string" />
+    </parameters>
+  </function>
+  <function name="GetFileTimes" visibility="private">
+    <parameters>
+      <parameter name="FileName" type="string" paramflags="const" />
+      <retval type="TFileTimes" />
+    </parameters>
+  </function>
+  <function name="SetFileTimes" visibility="private">
+    <parameters>
+      <parameter name="FileName" type="string" paramflags="const" />
+      <parameter name="FileTimes" type="TFileTimes" paramflags="var" />
+      <retval type="Boolean" />
+    </parameters>
+  </function>
+  <function name="load_file" visibility="private">
+    <parameters>
+      <parameter name="Path" type="string" />
+      <parameter name="TextMode" type="Boolean" />
+      <retval type="Boolean" />
+    </parameters>
+  </function>
+  <procedure name="save_file" visibility="private">
+    <parameters>
+      <parameter name="Path" type="string" />
+      <parameter name="binary_mode" type="Boolean" />
+    </parameters>
+  </procedure>
+  <procedure name="save_key" visibility="private">
+    <parameters>
+      <parameter name="path" type="string" />
+    </parameters>
+  </procedure>
+  <function name="load_key" visibility="private">
+    <parameters>
+      <parameter name="path" type="string" />
+      <retval type="Boolean" />
+    </parameters>
+  </function>
+  <function name="garbage_collector" visibility="private">
+    <parameters>
+      <parameter name="input" type="string" />
+      <retval type="string" />
+    </parameters>
+  </function>
+  <function name="AvaliableRAM" visibility="private">
+    <parameters>
+      <retval type="Cardinal" />
+    </parameters>
+  </function>
+</namespace>
